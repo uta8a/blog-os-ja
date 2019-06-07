@@ -32,19 +32,20 @@ Rust で OS カーネルを書くには、基盤となる OS なしで動く実�
 
 この記事では、フリースタンディングな Rust のバイナリをつくるために必要なステップを紹介し、なぜそれが必要なのかを説明します。 もし最小限の説明だけを読みたいのであれば **[概要](#概要)** まで飛ばしてください。
 
-## Disabling the Standard Library
-By default, all Rust crates link the [standard library], which depends on the operating system for features such as threads, files, or networking. It also depends on the C standard library `libc`, which closely interacts with OS services. Since our plan is to write an operating system, we can not use any OS-dependent libraries. So we have to disable the automatic inclusion of the standard library through the [`no_std` attribute].
+## 標準ライブラリの無効化
+
+デフォルトでは、全ての Rust クレートは[標準ライブラリ][standard library]にリンクされています。標準ライブラリはスレッドやファイル、ネットワークのような OS の機能に依存しています。 また OS と密接な関係にある C の標準ライブラリ( `libc` )にも依存しています。 私達の目的は OS を書くことなので、 OS 依存のライブラリを使うことはできません。 そのため、 [`no_std` attribute] を使って標準ライブラリが自動的にリンクされるのを無効にします。
 
 [standard library]: https://doc.rust-lang.org/std/
 [`no_std` attribute]: https://doc.rust-lang.org/1.30.0/book/first-edition/using-rust-without-the-standard-library.html
 
-We start by creating a new cargo application project. The easiest way to do this is through the command line:
+新しい Cargo プロジェクトをつくるところから始めましょう。 もっとも簡単なやり方はコマンドラインで以下を実行することです。
 
 ```
 cargo new blog_os --bin --edition 2018
 ```
 
-I named the project `blog_os`, but of course you can choose your own name. The `--bin` flag specifies that we want to create an executable binary (in contrast to a library) and the `--edition 2018` flag specifies that we want to use the [2018 edition] of Rust for our crate. When we run the command, cargo creates the following directory structure for us:
+プロジェクト名を `blog_os` としましたが、もちろんお好きな名前をつけていただいても大丈夫です。 `--bin`フラグは実行可能バイナリを作成することを、 `--edition 2018` は[2018エディション][2018 edition]を使用することを明示的に指定します。 コマンドを実行すると、 Cargoは以下のようなディレクトリ構造を作成します:
 
 [2018 edition]: https://rust-lang-nursery.github.io/edition-guide/rust-2018/index.html
 
@@ -55,13 +56,13 @@ blog_os
     └── main.rs
 ```
 
-The `Cargo.toml` contains the crate configuration, for example the crate name, the author, the [semantic version] number, and dependencies. The `src/main.rs` file contains the root module of our crate and our `main` function. You can compile your crate through `cargo build` and then run the compiled `blog_os` binary in the `target/debug` subfolder.
+`Cargo.toml` にはクレートの名前や作者名、[セマンティックバージョニング][semantic version]に基づくバージョンナンバーや依存関係などが書かれています。 `src/main.rs` には私達のクレートのルートモジュールと `main` 関数が含まれています。 `cargo build` コマンドでこのクレートをコンパイルして、 `target/debug` ディレクトリの中にあるコンパイルされた `blog_os` バイナリを実行することができます。
 
 [semantic version]: http://semver.org/
 
 ### The `no_std` Attribute
 
-Right now our crate implicitly links the standard library. Let's try to disable this by adding the [`no_std` attribute]:
+今のところ私達のクレートは暗黙のうちに標準ライブラリをリンクしています。 [`no_std` attribute]を追加してこれを無効にしてみましょう:
 
 ```rust
 // main.rs
@@ -73,7 +74,7 @@ fn main() {
 }
 ```
 
-When we try to build it now (by running `cargo build`), the following error occurs:
+(`cargo build` を実行して)ビルドしようとすると、次のようなエラーが発生します:
 
 ```
 error: cannot find macro `println!` in this scope
@@ -83,12 +84,12 @@ error: cannot find macro `println!` in this scope
   |     ^^^^^^^
 ```
 
-The reason for this error is that the [`println` macro] is part of the standard library, which we no longer include. So we can no longer print things. This makes sense, since `println` writes to [standard output], which is a special file descriptor provided by the operating system.
+これは [`println` マクロ][`println` macro]が標準ライブラリに含まれているためです。 `no_std` で標準ライブラリを無効にしたので、何かをプリントすることはできなくなりました。 `println` は標準出力に書き込むのでこれは理にかなっています。 [標準出力][standard output]は OS によって提供される特別なファイル記述子であるためです。
 
 [`println` macro]: https://doc.rust-lang.org/std/macro.println.html
 [standard output]: https://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29
 
-So let's remove the printing and try again with an empty main function:
+では、 `println` を削除し `main`関数を空にしてもう一度ビルドしてみましょう:
 
 ```rust
 // main.rs
@@ -104,7 +105,7 @@ error: `#[panic_handler]` function required, but not found
 error: language item required, but not found: `eh_personality`
 ```
 
-Now the compiler is missing a `#[panic_handler]` function and a _language item_.
+この状態では `#[panic_handler]` 関数と `language item` がないというエラーが発生します。
 
 ## Panic Implementation
 

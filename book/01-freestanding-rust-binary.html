@@ -150,20 +150,20 @@
 <p>これは <a href="https://doc.rust-lang.org/std/">Rust の標準ライブラリ</a>をほとんど使えないということを意味しますが、それでも私達が使うことのできる Rust の機能はたくさんあります。 例えば、<a href="https://doc.rust-lang.org/book/ch13-02-iterators.html">イテレータ</a>や<a href="https://doc.rust-lang.org/book/ch13-01-closures.html">クロージャ</a>、<a href="https://doc.rust-lang.org/book/ch06-00-enums.html">パターンマッチング</a>、 <a href="https://doc.rust-lang.org/core/option/"><code>Option</code></a> や <a href="https://doc.rust-lang.org/core/result/"><code>Result</code></a> 型に<a href="https://doc.rust-lang.org/core/macro.write.html">文字列フォーマット</a>、そしてもちろん<a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html">所有権システム</a>を使うことができます。 これらの機能により、<a href="https://www.nayuki.io/page/undefined-behavior-in-c-and-cplusplus-programs">未定義動作</a>や<a href="https://tonyarcieri.com/it-s-time-for-a-memory-safety-intervention">メモリ安全性</a>を気にせずに、高い水準で表現力豊かにカーネルを書くことができます。</p>
 <p>Rust で OS カーネルを書くには、基盤となる OS なしで動く実行環境をつくる必要があります。 そのような実行環境はフリースタンディング環境やベアメタルのように呼ばれます。</p>
 <p>この記事では、フリースタンディングな Rust のバイナリをつくるために必要なステップを紹介し、なぜそれが必要なのかを説明します。 もし最小限の説明だけを読みたいのであれば <strong><a href="#%E6%A6%82%E8%A6%81">概要</a></strong> まで飛ばしてください。</p>
-<a class="header" href="#disabling-the-standard-library" id="disabling-the-standard-library"><h2>Disabling the Standard Library</h2></a>
-<p>By default, all Rust crates link the <a href="https://doc.rust-lang.org/std/">standard library</a>, which depends on the operating system for features such as threads, files, or networking. It also depends on the C standard library <code>libc</code>, which closely interacts with OS services. Since our plan is to write an operating system, we can not use any OS-dependent libraries. So we have to disable the automatic inclusion of the standard library through the <a href="https://doc.rust-lang.org/1.30.0/book/first-edition/using-rust-without-the-standard-library.html"><code>no_std</code> attribute</a>.</p>
-<p>We start by creating a new cargo application project. The easiest way to do this is through the command line:</p>
+<a class="header" href="#標準ライブラリの無効化" id="標準ライブラリの無効化"><h2>標準ライブラリの無効化</h2></a>
+<p>デフォルトでは、全ての Rust クレートは<a href="https://doc.rust-lang.org/std/">標準ライブラリ</a>にリンクされています。標準ライブラリはスレッドやファイル、ネットワークのような OS の機能に依存しています。 また OS と密接な関係にある C の標準ライブラリ( <code>libc</code> )にも依存しています。 私達の目的は OS を書くことなので、 OS 依存のライブラリを使うことはできません。 そのため、 <a href="https://doc.rust-lang.org/1.30.0/book/first-edition/using-rust-without-the-standard-library.html"><code>no_std</code> attribute</a> を使って標準ライブラリが自動的にリンクされるのを無効にします。</p>
+<p>新しい Cargo プロジェクトをつくるところから始めましょう。 もっとも簡単なやり方はコマンドラインで以下を実行することです。</p>
 <pre><code>cargo new blog_os --bin --edition 2018
 </code></pre>
-<p>I named the project <code>blog_os</code>, but of course you can choose your own name. The <code>--bin</code> flag specifies that we want to create an executable binary (in contrast to a library) and the <code>--edition 2018</code> flag specifies that we want to use the <a href="https://rust-lang-nursery.github.io/edition-guide/rust-2018/index.html">2018 edition</a> of Rust for our crate. When we run the command, cargo creates the following directory structure for us:</p>
+<p>プロジェクト名を <code>blog_os</code> としましたが、もちろんお好きな名前をつけていただいても大丈夫です。 <code>--bin</code>フラグは実行可能バイナリを作成することを、 <code>--edition 2018</code> は<a href="https://rust-lang-nursery.github.io/edition-guide/rust-2018/index.html">2018エディション</a>を使用することを明示的に指定します。 コマンドを実行すると、 Cargoは以下のようなディレクトリ構造を作成します:</p>
 <pre><code>blog_os
 ├── Cargo.toml
 └── src
     └── main.rs
 </code></pre>
-<p>The <code>Cargo.toml</code> contains the crate configuration, for example the crate name, the author, the <a href="http://semver.org/">semantic version</a> number, and dependencies. The <code>src/main.rs</code> file contains the root module of our crate and our <code>main</code> function. You can compile your crate through <code>cargo build</code> and then run the compiled <code>blog_os</code> binary in the <code>target/debug</code> subfolder.</p>
+<p><code>Cargo.toml</code> にはクレートの名前や作者名、<a href="http://semver.org/">セマンティックバージョニング</a>に基づくバージョンナンバーや依存関係などが書かれています。 <code>src/main.rs</code> には私達のクレートのルートモジュールと <code>main</code> 関数が含まれています。 <code>cargo build</code> コマンドでこのクレートをコンパイルして、 <code>target/debug</code> ディレクトリの中にあるコンパイルされた <code>blog_os</code> バイナリを実行することができます。</p>
 <a class="header" href="#the-no_std-attribute" id="the-no_std-attribute"><h3>The <code>no_std</code> Attribute</h3></a>
-<p>Right now our crate implicitly links the standard library. Let's try to disable this by adding the <a href="https://doc.rust-lang.org/1.30.0/book/first-edition/using-rust-without-the-standard-library.html"><code>no_std</code> attribute</a>:</p>
+<p>今のところ私達のクレートは暗黙のうちに標準ライブラリをリンクしています。 <a href="https://doc.rust-lang.org/1.30.0/book/first-edition/using-rust-without-the-standard-library.html"><code>no_std</code> attribute</a>を追加してこれを無効にしてみましょう:</p>
 <pre><pre class="playpen"><code class="language-rust">// main.rs
 
 #![no_std]
@@ -172,15 +172,15 @@ fn main() {
     println!(&quot;Hello, world!&quot;);
 }
 </code></pre></pre>
-<p>When we try to build it now (by running <code>cargo build</code>), the following error occurs:</p>
+<p>(<code>cargo build</code> を実行して)ビルドしようとすると、次のようなエラーが発生します:</p>
 <pre><code>error: cannot find macro `println!` in this scope
  --&gt; src/main.rs:4:5
   |
 4 |     println!(&quot;Hello, world!&quot;);
   |     ^^^^^^^
 </code></pre>
-<p>The reason for this error is that the <a href="https://doc.rust-lang.org/std/macro.println.html"><code>println</code> macro</a> is part of the standard library, which we no longer include. So we can no longer print things. This makes sense, since <code>println</code> writes to <a href="https://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29">standard output</a>, which is a special file descriptor provided by the operating system.</p>
-<p>So let's remove the printing and try again with an empty main function:</p>
+<p>これは <a href="https://doc.rust-lang.org/std/macro.println.html"><code>println</code> マクロ</a>が標準ライブラリに含まれているためです。 <code>no_std</code> で標準ライブラリを無効にしたので、何かをプリントすることはできなくなりました。 <code>println</code> は標準出力に書き込むのでこれは理にかなっています。 <a href="https://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29">標準出力</a>は OS によって提供される特別なファイル記述子であるためです。</p>
+<p>では、 <code>println</code> を削除し <code>main</code>関数を空にしてもう一度ビルドしてみましょう:</p>
 <pre><pre class="playpen"><code class="language-rust">// main.rs
 
 #![no_std]
@@ -191,7 +191,7 @@ fn main() {}
 error: `#[panic_handler]` function required, but not found
 error: language item required, but not found: `eh_personality`
 </code></pre>
-<p>Now the compiler is missing a <code>#[panic_handler]</code> function and a <em>language item</em>.</p>
+<p>この状態では <code>#[panic_handler]</code> 関数と <code>language item</code> がないというエラーが発生します。</p>
 <a class="header" href="#panic-implementation" id="panic-implementation"><h2>Panic Implementation</h2></a>
 <p>The <code>panic_handler</code> attribute defines the function that the compiler should invoke when a <a href="https://doc.rust-lang.org/stable/book/ch09-01-unrecoverable-errors-with-panic.html">panic</a> occurs. The standard library provides its own panic handler function, but in a <code>no_std</code> environment we need to define it ourselves:</p>
 <pre><pre class="playpen"><code class="language-rust">
