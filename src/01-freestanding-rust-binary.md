@@ -107,11 +107,11 @@ error: language item required, but not found: `eh_personality`
 
 この状態では `#[panic_handler]` 関数と `language item` がないというエラーが発生します。
 
-## Panic Implementation
+## Panic の実装
 
-The `panic_handler` attribute defines the function that the compiler should invoke when a [panic] occurs. The standard library provides its own panic handler function, but in a `no_std` environment we need to define it ourselves:
+`panic_handler` attribute は[パニック]が発生したときにコンパイラが呼び出す関数を定義します。 標準ライブラリには独自のパニックハンドラー関数がありますが、 `no_std` 環境では私達の手でそれを実装する必要があります:
 
-[panic]: https://doc.rust-lang.org/stable/book/ch09-01-unrecoverable-errors-with-panic.html
+[パニック]: https://doc.rust-lang.org/stable/book/ch09-01-unrecoverable-errors-with-panic.html
 
 ```rust
 // in main.rs
@@ -125,9 +125,9 @@ fn panic(_info: &PanicInfo) -> ! {
 }
 ```
 
-The [`PanicInfo` parameter][PanicInfo] contains the file and line where the panic happened and the optional panic message. The function should never return, so it is marked as a [diverging function] by returning the [“never” type] `!`. There is not much we can do in this function for now, so we just loop indefinitely.
+[`PanicInfo` パラメータ]には、パニックが発生したファイルと行、およびオプションでパニックメッセージが含まれます。 この関数は戻り値を取るべきではないので、]"never" 型(`!`)][“never” type]を返すことで[発散する関数][diverging function]となります。 今のところこの関数でできることは多くないので、無限にループするだけです。
 
-[PanicInfo]: https://doc.rust-lang.org/nightly/core/panic/struct.PanicInfo.html
+[`PanicInfo` パラメータ]: https://doc.rust-lang.org/nightly/core/panic/struct.PanicInfo.html
 [diverging function]: https://doc.rust-lang.org/1.30.0/book/first-edition/functions.html#diverging-functions
 [“never” type]: https://doc.rust-lang.org/nightly/std/primitive.never.html
 
