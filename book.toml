@@ -1,0 +1,5 @@
+[book]
+authors = ["Yuki Okushi"]
+multilingual = false
+src = "src"
+title = "Writing an OS in Rust"
