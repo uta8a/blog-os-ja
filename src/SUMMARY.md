@@ -1,3 +1,4 @@
 # Summary
 
-- [Chapter 1](./chapter_1.md)
+- [はじめに](./intro.md)
+- [A Freestanding Rust Binary](./01-freestanding-rust-binary.md)
