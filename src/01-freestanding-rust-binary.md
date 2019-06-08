@@ -133,14 +133,14 @@ fn panic(_info: &PanicInfo) -> ! {
 
 ## The `eh_personality` Language Item
 
-Language items are special functions and types that are required internally by the compiler. For example, the [`Copy`] trait is a language item that tells the compiler which types have [_copy semantics_][`Copy`]. When we look at the [implementation][copy code], we see it has the special `#[lang = "copy"]` attribute that defines it as a language item.
+language item はコンパイラによって内部的に必要とされる特別な関数や型です。 例えば、[`Copy`] トレイトはどの型が[コピーセマンティクス][`Copy`]を持っているかをコンパイラに伝える language item です。 [実装][copy code]を見てみると、 language item として定義されている特別な `#[lang = "copy"]` attribute を持っていることが分かります。
 
 [`Copy`]: https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html
 [copy code]: https://github.com/rust-lang/rust/blob/485397e49a02a3b7ff77c17e4a3f16c653925cb3/src/libcore/marker.rs#L296-L299
 
-Providing own implementations of language items would be possible, but this should only be done as a last resort. The reason is that language items are highly unstable implementation details and not even type checked (so the compiler doesn't even check if a function has the right argument types). Fortunately, there is a more stable ways to fix the above language item error.
+独自に language item を実装することもできますが、これは最終手段として行われるべきでしょう。 というのも、language item は非常に不安定な実装であり型検査も行われないからです(なので、コンパイラは関数が正しい引数の型を取っているかさえ検査しません)。 幸い、上記の language item のエラーを修正するためのより安定した方法があります。
 
-The `eh_personality` language item marks a function that is used for implementing [stack unwinding]. By default, Rust uses unwinding to run the destructors of all live stack variables in case of a [panic]. This ensures that all used memory is freed and allows the parent thread to catch the panic and continue execution. Unwinding, however, is a complicated process and requires some OS specific libraries (e.g. [libunwind] on Linux or [structured exception handling] on Windows), so we don't want to use it for our operating system.
+`eh_personality` language item は[スタックアンワインド][stack unwinding] を実装するための関数を定義します。 デフォルトでは、パニックが起きた場合には Rust はアンワインドを使用してすべてのスタックにある変数のデストラクタを実行します。 これにより、使用されている全てのメモリが確実に解放され、親スレッドはパニックを検知して実行を継続できます。 しかしアンワインドは複雑であり、いくつかの OS 特有のライブラリ(例えば、Linux では [libunwind] 、Windows では[構造化例外][structured exception handling])を必要とするので、私達の OS には使いたくありません。
 
 [stack unwinding]: http://www.bogotobogo.com/cplusplus/stackunwinding.php
 [libunwind]: http://www.nongnu.org/libunwind/
