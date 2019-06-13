@@ -1,0 +1,33 @@
+language: rust
+rust: stable
+dist: xenial
+
+branches:
+  only: master
+
+before_script:
+  - rustc -V
+  - cargo -V
+  - git --version
+  - git rev-parse HEAD
+
+script: cargo install mdbook
+
+before_deploy:
+  - mdbook -V
+ - mdbook build
+
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  local-dir: book
+  keep-history: false
+  on:
+    branch: master
+
+cache: cargo
+
+notifications:
+  email:
+    on_success: never
