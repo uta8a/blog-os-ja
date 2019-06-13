@@ -177,13 +177,11 @@ error: requires `start` lang_item
 
 [runtime system]: https://en.wikipedia.org/wiki/Runtime_system
 
-標準ライブラリをリンクする一般的な Rust バイナリでは、`crt0` ("C runtime zero")と呼ばれる C のランタイムライブラリで実行が開始され、C アプリケーションの環境が設定されます。
-
-The C runtime then invokes the [entry point of the Rust runtime][rt::lang_start], which is marked by the `start` language item. Rust only has a very minimal runtime, which takes care of some small things such as setting up stack overflow guards or printing a backtrace on panic. The runtime then finally calls the `main` function.
+標準ライブラリをリンクする一般的な Rust バイナリでは、`crt0` ("C runtime zero")と呼ばれる C のランタイムライブラリで実行が開始され、C アプリケーションの環境が設定されます。 その後 C ランタイムは、`start` language item でマークされている [Rust ランタイムのエントリポイント][rt::lang_start]を呼び出します。 Rust にはごくわずかなランタイムしかありません。 これは、スタックオーバーフローを防ぐ設定やパニック時のバックトレースの表示など、いくつかの小さな処理を行います。最後に、ランタイムは `main` 関数を呼び出します。
 
 [rt::lang_start]: https://github.com/rust-lang/rust/blob/bb4d1491466d8239a7a5fd68bd605e3276e97afb/src/libstd/rt.rs#L32-L73
 
-Our freestanding executable does not have access to the Rust runtime and `crt0`, so we need to define our own entry point. Implementing the `start` language item wouldn't help, since it would still require `crt0`. Instead, we need to overwrite the `crt0` entry point directly.
+私達のフリースタンディングな実行可能ファイルは今のところ Rust ランタイムと `crt0` へアクセスできません。なので、私達は自身でエントリポイントを定義する必要があります。 `start` language item を実装することは `crt0` を必要とするのでここではできません。代わりに `crt0` エントリポイントを直接上書きしなければなりません。
 
 ### Overwriting the Entry Point
 To tell the Rust compiler that we don't want to use the normal entry point chain, we add the `#![no_main]` attribute.
