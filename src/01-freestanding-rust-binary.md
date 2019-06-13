@@ -1,6 +1,6 @@
 # A Freestanding Rust Binary
 
-私達自身のオペレーティングシステム(以下、OS )カーネルを作っていく最初のステップは標準ライブラリとリンクしない Rust の実行環境をつくることです。 これにより、基盤となる OS がないベアメタル上で Rust のコードを実行することができるようになります (訳注: Bare machine の日本語版 Wikipedia ページが見当たらなかったのでリンクを省いています)。
+私達自身のオペレーティングシステム(以下、OS)カーネルを作っていく最初のステップは標準ライブラリとリンクしない Rust の実行環境をつくることです。 これにより、基盤となる OS がないベアメタル上で Rust のコードを実行することができるようになります (訳注: Bare machine の日本語版 Wikipedia ページが見当たらなかったのでリンクを省いています)。
 
 <!-- more -->
 
@@ -89,7 +89,7 @@ error: cannot find macro `println!` in this scope
 [`println` macro]: https://doc.rust-lang.org/std/macro.println.html
 [standard output]: https://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29
 
-では、 `println` を削除し `main`関数を空にしてもう一度ビルドしてみましょう:
+では、 `println` を削除し `main` 関数を空にしてもう一度ビルドしてみましょう:
 
 ```rust
 // main.rs
@@ -146,9 +146,9 @@ language item はコンパイラによって内部的に必要とされる特別
 [libunwind]: http://www.nongnu.org/libunwind/
 [structured exception handling]: https://msdn.microsoft.com/en-us/library/windows/desktop/ms680657(v=vs.85).aspx
 
-### Disabling Unwinding
+### アンワインドの無効化
 
-There are other use cases as well for which unwinding is undesirable, so Rust provides an option to [abort on panic] instead. This disables the generation of unwinding symbol information and thus considerably reduces binary size. There are multiple places where we can disable unwinding. The easiest way is to add the following lines to our `Cargo.toml`:
+他にもアンワインドが望ましくないユースケースがあります。 そのため、Rust には代わりに[パニックで中止する][abort on panic]オプションがあります。 これにより、アンワインドのシンボル情報の生成が無効になり、バイナリサイズが大幅に削減されます。 アンワインドを無効にする方法は複数あります。 もっとも簡単な方法は、`Cargo.toml` に次の行を追加することです:
 
 ```toml
 [profile.dev]
@@ -158,26 +158,28 @@ panic = "abort"
 panic = "abort"
 ```
 
-This sets the panic strategy to `abort` for both the `dev` profile (used for `cargo build`) and the `release` profile (used for `cargo build --release`). Now the `eh_personality` language item should no longer be required.
+これは dev プロファイル(`cargo build` に使用される)と release プロファイル(`cargo build --release` に使用される)の両方でパニックで中止するようにするための設定です。 これで `eh_personality` language item が不要になりました。
 
 [abort on panic]: https://github.com/rust-lang/rust/pull/32900
 
-Now we fixed both of the above errors. However, if we try to compile it now, another error occurs:
+これで上の2つのエラーを修正しました。 しかし、コンパイルしようとすると別のエラーが発生します:
 
 ```
 > cargo build
 error: requires `start` lang_item
 ```
 
-Our program is missing the `start` language item, which defines the entry point.
+私達のプログラムにはエントリポイントを定義する `start` language item がありません。
 
 ## The `start` attribute
 
-One might think that the `main` function is the first function called when you run a program. However, most languages have a [runtime system], which is responsible for things such as garbage collection (e.g. in Java) or software threads (e.g. goroutines in Go). This runtime needs to be called before `main`, since it needs to initialize itself.
+`main` 関数はプログラムを実行したときに最初に呼び出される関数であると思うかもしれません。 しかし、ほとんどの言語には[ランタイムシステム][runtime system]があり、これはガベージコレクション(Java など)やソフトウェアスレッド(Go のゴルーチン)などを処理します。 ランタイムは自身を初期化する必要があるため、`main` 関数の前に呼び出す必要があります。 これにはスタック領域の作成と正しいレジスタへの引数の配置が含まれます。
 
 [runtime system]: https://en.wikipedia.org/wiki/Runtime_system
 
-In a typical Rust binary that links the standard library, execution starts in a C runtime library called `crt0` (“C runtime zero”), which sets up the environment for a C application. This includes creating a stack and placing the arguments in the right registers. The C runtime then invokes the [entry point of the Rust runtime][rt::lang_start], which is marked by the `start` language item. Rust only has a very minimal runtime, which takes care of some small things such as setting up stack overflow guards or printing a backtrace on panic. The runtime then finally calls the `main` function.
+標準ライブラリをリンクする一般的な Rust バイナリでは、`crt0` ("C runtime zero")と呼ばれる C のランタイムライブラリで実行が開始され、C アプリケーションの環境が設定されます。
+
+The C runtime then invokes the [entry point of the Rust runtime][rt::lang_start], which is marked by the `start` language item. Rust only has a very minimal runtime, which takes care of some small things such as setting up stack overflow guards or printing a backtrace on panic. The runtime then finally calls the `main` function.
 
 [rt::lang_start]: https://github.com/rust-lang/rust/blob/bb4d1491466d8239a7a5fd68bd605e3276e97afb/src/libstd/rt.rs#L32-L73
 
