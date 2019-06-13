@@ -11,7 +11,7 @@ before_script:
   - git --version
   - git rev-parse HEAD
 
-script: cargo install mdbook
+script: cargo install mdbook --force
 
 before_deploy:
   - mdbook -V
