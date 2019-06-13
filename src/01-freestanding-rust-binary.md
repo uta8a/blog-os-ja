@@ -177,14 +177,15 @@ error: requires `start` lang_item
 
 [runtime system]: https://en.wikipedia.org/wiki/Runtime_system
 
-標準ライブラリをリンクする一般的な Rust バイナリでは、`crt0` ("C runtime zero")と呼ばれる C のランタイムライブラリで実行が開始され、C アプリケーションの環境が設定されます。 その後 C ランタイムは、`start` language item でマークされている [Rust ランタイムのエントリポイント][rt::lang_start]を呼び出します。 Rust にはごくわずかなランタイムしかありません。 これは、スタックオーバーフローを防ぐ設定やパニック時のバックトレースの表示など、いくつかの小さな処理を行います。最後に、ランタイムは `main` 関数を呼び出します。
+標準ライブラリをリンクする一般的な Rust バイナリでは、`crt0` ("C runtime zero")と呼ばれる C のランタイムライブラリで実行が開始され、C アプリケーションの環境が設定されます。 その後 C ランタイムは、`start` language item で定義されている [Rust ランタイムのエントリポイント][rt::lang_start]を呼び出します。 Rust にはごくわずかなランタイムしかありません。 これは、スタックオーバーフローを防ぐ設定やパニック時のバックトレースの表示など、いくつかの小さな処理を行います。最後に、ランタイムは `main` 関数を呼び出します。
 
 [rt::lang_start]: https://github.com/rust-lang/rust/blob/bb4d1491466d8239a7a5fd68bd605e3276e97afb/src/libstd/rt.rs#L32-L73
 
 私達のフリースタンディングな実行可能ファイルは今のところ Rust ランタイムと `crt0` へアクセスできません。なので、私達は自身でエントリポイントを定義する必要があります。 `start` language item を実装することは `crt0` を必要とするのでここではできません。代わりに `crt0` エントリポイントを直接上書きしなければなりません。
 
-### Overwriting the Entry Point
-To tell the Rust compiler that we don't want to use the normal entry point chain, we add the `#![no_main]` attribute.
+### エントリポイントの上書き
+
+Rust コンパイラに通常のエントリポイントを使いたくないことを伝えるために、`#![no_main]` attribute を追加します。
 
 ```rust
 #![no_std]
@@ -199,7 +200,7 @@ fn panic(_info: &PanicInfo) -> ! {
 }
 ```
 
-You might notice that we removed the `main` function. The reason is that a `main` doesn't make sense without an underlying runtime that calls it. Instead, we are now overwriting the operating system entry point with our own `_start` function:
+`main` 関数を削除したことに気付いたかもしれません。 `main` 関数を呼び出す基盤となるランタイムなしには置いていても意味がないからです。 代わりに、OS のエントリポイントを独自の `_start` 関数で上書きしていきます:
 
 ```rust
 #[no_mangle]
@@ -208,18 +209,18 @@ pub extern "C" fn _start() -> ! {
 }
 ```
 
-By using the `#[no_mangle]` attribute we disable the [name mangling] to ensure that the Rust compiler really outputs a function with the name `_start`. Without the attribute, the compiler would generate some cryptic `_ZN3blog_os4_start7hb173fedf945531caE` symbol to give every function an unique name. The attribute is required because we need to tell the name of the entry point function to the linker in the next step.
+Rust コンパイラが `_start` という名前の関数を実際に出力するように、`#[no_mangle]` attributeを用いて[名前修飾][name mangling]を無効にします。 この attribute がないと、コンパイラはすべての関数にユニークな名前をつけるために、 `_ZN3blog_os4_start7hb173fedf945531caE` のようなシンボルを生成します。 次のステップでエントリポイントとなる関数の名前をリンカに伝えるため、この属性が必要となります。
 
-We also have to mark the function as `extern "C"` to tell the compiler that it should use the [C calling convention] for this function (instead of the unspecified Rust calling convention). The reason for naming the function `_start` is that this is the default entry point name for most systems.
+また、(指定されていない Rust の呼び出し規約の代わりに)この関数に [C の呼び出し規約][C calling convention]を使用するようコンパイラに伝えるために、関数を `extern "C"` として定義する必要があります。 `_start`という名前をつける理由は、これがほとんどのシステムのデフォルトのエントリポイント名だからです。
 
 [name mangling]: https://en.wikipedia.org/wiki/Name_mangling
 [C calling convention]: https://en.wikipedia.org/wiki/Calling_convention
 
-The `!` return type means that the function is diverging, i.e. not allowed to ever return. This is required because the entry point is not called by any function, but invoked directly by the operating system or bootloader. So instead of returning, the entry point should e.g. invoke the [`exit` system call] of the operating system. In our case, shutting down the machine could be a reasonable action, since there's nothing left to do if a freestanding binary returns. For now, we fulfill the requirement by looping endlessly.
+戻り値の型である `!` は関数が発散している、つまり値を返すことができないことを意味しています。 エントリポイントはどの関数からも呼び出されず、OS またはブートローダから直接呼び出されるので、これは必須です。なので、値を返す代わりに、エントリポイントは例えば OS の [`exit` システムコール][`exit` system call]を呼び出します。 今回はフリースタンディングなバイナリが返されたときマシンをシャットダウンするようにすると良いでしょう。 今のところ、私達は無限ループを起こすことで要件を満たします。
 
 [`exit` system call]: https://en.wikipedia.org/wiki/Exit_(system_call)
 
-When we run `cargo build` now, we get an ugly _linker_ error.
+`cargo build` を実行すると、見づらいリンカエラーが発生します。
 
 ## Linker Errors
 
