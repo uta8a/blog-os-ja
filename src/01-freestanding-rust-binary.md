@@ -60,7 +60,7 @@ blog_os
 
 [semantic version]: http://semver.org/
 
-### The `no_std` Attribute
+### `no_std` Attribute
 
 今のところ私達のクレートは暗黙のうちに標準ライブラリをリンクしています。 [`no_std` attribute]を追加してこれを無効にしてみましょう:
 
@@ -131,7 +131,7 @@ fn panic(_info: &PanicInfo) -> ! {
 [diverging function]: https://doc.rust-lang.org/1.30.0/book/first-edition/functions.html#diverging-functions
 [“never” type]: https://doc.rust-lang.org/nightly/std/primitive.never.html
 
-## The `eh_personality` Language Item
+## `eh_personality` Language Item
 
 language item はコンパイラによって内部的に必要とされる特別な関数や型です。 例えば、[`Copy`] トレイトはどの型が[コピーセマンティクス][`Copy`]を持っているかをコンパイラに伝える language item です。 [実装][copy code]を見てみると、 language item として定義されている特別な `#[lang = "copy"]` attribute を持っていることが分かります。
 
@@ -171,7 +171,7 @@ error: requires `start` lang_item
 
 私達のプログラムにはエントリポイントを定義する `start` language item がありません。
 
-## The `start` attribute
+## `start` attribute
 
 `main` 関数はプログラムを実行したときに最初に呼び出される関数であると思うかもしれません。 しかし、ほとんどの言語には[ランタイムシステム][runtime system]があり、これはガベージコレクション(Java など)やソフトウェアスレッド(Go のゴルーチン)などを処理します。 ランタイムは自身を初期化する必要があるため、`main` 関数の前に呼び出す必要があります。 これにはスタック領域の作成と正しいレジスタへの引数の配置が含まれます。
 
@@ -222,11 +222,11 @@ Rust コンパイラが `_start` という名前の関数を実際に出力す�
 
 `cargo build` を実行すると、見づらいリンカエラーが発生します。
 
-## Linker Errors
+## リンカエラー
 
-The linker is a program that combines the generated code into an executable. Since the executable format differs between Linux, Windows, and macOS, each system has its own linker that throws a different error. The fundamental cause of the errors is the same: the default configuration of the linker assumes that our program depends on the C runtime, which it does not.
+リンカは、生成されたコードを実行可能ファイルに紐付けるプログラムです。 実行可能ファイルの形式は Linux や Windows、macOS でそれぞれ異なるため、各システムにはそれぞれ異なるエラーを発生させる独自のリンカがあります。 エラーの根本的な原因は同じです。 リンカのデフォルト設定では、プログラムが C ランタイムに依存していると仮定していますが、実際にはしていません。
 
-To solve the errors, we need to tell the linker that it should not include the C runtime. We can do this either by passing a certain set of arguments to the linker or by building for a bare metal target.
+エラーを回避するためにはリンカに C ランタイムに依存しないことを伝える必要があります。 これはリンカに一連の引数を渡すか、ベアメタルターゲット用にビルドすることで可能となります。
 
 ### Building for a Bare Metal Target
 
