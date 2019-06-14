@@ -1,6 +1,8 @@
 # A Freestanding Rust Binary
 
-私達自身のオペレーティングシステム(以下、OS)カーネルを作っていく最初のステップは標準ライブラリとリンクしない Rust の実行環境をつくることです。 これにより、基盤となる OS がないベアメタル上で Rust のコードを実行することができるようになります (訳注: Bare machine の日本語版 Wikipedia ページが見当たらなかったのでリンクを省いています)。
+私達自身のオペレーティングシステム(以下、OS)カーネルを作っていく最初のステップは標準ライブラリとリンクしない Rust の実行環境をつくることです。 これにより、基盤となる OS がない[ベアメタル][bare metal]上で Rust のコードを実行することができるようになります。
+
+[bare metal]: https://en.wikipedia.org/wiki/Bare_machine
 
 <!-- more -->
 
@@ -228,11 +230,11 @@ Rust コンパイラが `_start` という名前の関数を実際に出力す�
 
 エラーを回避するためにはリンカに C ランタイムに依存しないことを伝える必要があります。 これはリンカに一連の引数を渡すか、ベアメタルターゲット用にビルドすることで可能となります。
 
-### Building for a Bare Metal Target
+### ベアメタルターゲット用にビルドする
 
-By default Rust tries to build an executable that is able to run in your current system environment. For example, if you're using Windows on `x86_64`, Rust tries to build a `.exe` Windows executable that uses `x86_64` instructions. This environment is called your "host" system.
+デフォルトでは、Rust は現在のシステム環境に合った実行可能ファイルをビルドしようとします。 例えば、`x86_64` で Windows を使用している場合、Rust は `x86_64` 用の `.exe` Windows 実行可能ファイルをビルドしようとします。 このような環境は「ホスト」システムと呼ばれます。
 
-To describe different environments, Rust uses a string called [_target triple_]. You can see the target triple for your host system by running `rustc --version --verbose`:
+様々な環境を表現するために、Rust は [_target triple_] という文字列を使います。 `rustc --version --verbose` を実行すると、ホストシステムの target triple を確認できます:
 
 [_target triple_]: https://clang.llvm.org/docs/CrossCompilation.html#target-triple
 
@@ -246,32 +248,31 @@ release: 1.35.0-nightly
 LLVM version: 8.0
 ```
 
-The above output is from a `x86_64` Linux system. We see that the `host` triple is `x86_64-unknown-linux-gnu`, which includes the CPU architecture (`x86_64`), the vendor (`unknown`), the operating system (`linux`), and the [ABI] (`gnu`).
+上記の出力は `x86_64` の Linux によるものです。 `host` は `x86_64-unknown-linux-gnu` です。 これには CPU アーキテクチャ(`x86_64`)、ベンダー(`unknown`)、OS(`Linux`)、そして [ABI] (`gnu`)が含まれています。
 
 [ABI]: https://en.wikipedia.org/wiki/Application_binary_interface
 
-By compiling for our host triple, the Rust compiler and the linker assume that there is an underlying operating system such as Linux or Windows that use the C runtime by default, which causes the linker errors. So to avoid the linker errors, we can compile for a different environment with no underlying operating system.
+ホストの triple 用にコンパイルすることで、Rust コンパイラとリンカは、デフォルトで C ランタイムを使用する Linux や Windows のような基盤となる OS があると想定し、それによってリンカエラーが発生します。 なのでリンカエラーを回避するために、基盤となる OS を使用せずに異なる環境用にコンパイルします。
 
-An example for such a bare metal environment is the `thumbv7em-none-eabihf` target triple, which describes an [embedded] [ARM] system. The details are not important, all that matters is that the target triple has no underlying operating system, which is indicated by the `none` in the target triple. To be able to compile for this target, we need to add it in rustup:
+このようなベアメタル環境の例としては、`thumbv7em-none-eabihf` target triple があります。 これは、[組込みシステム][embedded]を表しています。 詳細は省きますが、重要なのは `none` という文字列からわかるように、 この target triple に基盤となる OS がないことです。 このターゲット用にコンパイルできるようにするには、 rustup にこれを追加する必要があります:
 
 [embedded]: https://en.wikipedia.org/wiki/Embedded_system
-[ARM]: https://en.wikipedia.org/wiki/ARM_architecture
 
 ```
 rustup target add thumbv7em-none-eabihf
 ```
 
-This downloads a copy of the standard (and core) library for the system. Now we can build our freestanding executable for this target:
+これにより、この target triple 用の標準(およびコア)ライブラリのコピーがダウンロードされます。 これで、このターゲット用にフリースタンディングな実行可能ファイルをビルドできます:
 
 ```
 cargo build --target thumbv7em-none-eabihf
 ```
 
-By passing a `--target` argument we [cross compile] our executable for a bare metal target system. Since the target system has no operating system, the linker does not try to link the C runtime and our build succeeds without any linker errors.
+`--target` 引数を渡すことで、ベアメタルターゲット用に実行可能ファイルを[クロスコンパイル][cross compile]します。このターゲットシステムには OS がないため、リンカは C ランタイムをリンクしようとせず、ビルドはリンカエラーなしで成功します。
 
 [cross compile]: https://en.wikipedia.org/wiki/Cross_compiler
 
-This is the approach that we will use for building our OS kernel. Instead of `thumbv7em-none-eabihf`, we will use a [custom target] that describes a `x86_64` bare metal environment. The details will be explained in the next post.
+これが私達の OS カーネルを書くために使うアプローチです。 実際には、`thumbv7em-none-eabihf` の代わりに、`x86_64` のベアメタル環境を表す[カスタムターゲット][custom target]を使用します。詳細は次の記事で説明します。
 
 [custom target]: https://doc.rust-lang.org/rustc/targets/custom.html
 
