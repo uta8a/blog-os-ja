@@ -23,6 +23,7 @@ deploy:
   github-token: $GITHUB_TOKEN
   local-dir: book
   keep-history: false
+  fqdn: os.neet.club
   on:
     branch: master
 
