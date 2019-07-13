@@ -290,7 +290,7 @@ cargo build --target thumbv7em-none-eabihf
 
 Linux では以下のようなエラーが発生します(抜粋):
 
-```bash
+```
 error: linking with `cc` failed: exit code: 1
   |
   = note: "cc" […]
@@ -319,7 +319,7 @@ cargo rustc -- -C link-arg=-nostartfiles
 
 Windows では別のリンカエラーが発生します(抜粋):
 
-```bash
+```
 error: linking with `link.exe` failed: exit code: 1561
   |
   = note: "C:\\Program Files (x86)\\…\\link.exe" […]
@@ -338,7 +338,7 @@ cargo rustc -- -C link-arg=/ENTRY:_start
 
 これにより、別のリンカエラーが発生します:
 
-```bash
+```
 error: linking with `link.exe` failed: exit code: 1221
   |
   = note: "C:\\Program Files (x86)\\…\\link.exe" […]
@@ -360,7 +360,7 @@ cargo rustc -- -C link-args="/ENTRY:_start /SUBSYSTEM:console"
 
 #### macOS
 
-On macOS, the following linker error occurs (shortened):
+macOS では次のようなリンカエラーが発生します(抜粋):
 
 ```
 error: linking with `cc` failed: exit code: 1
@@ -370,15 +370,15 @@ error: linking with `cc` failed: exit code: 1
           clang: error: linker command failed with exit code 1 […]
 ```
 
-This error message tells us that the linker can't find an entry point function with the default name `main` (for some reason all functions are prefixed with a `_` on macOS). To set the entry point to our `_start` function, we pass the `-e` linker argument:
+このエラーメッセージは、リンカがデフォルト名が `main` (いくつかの理由で、macOS 上ではすべての関数の前には `_` が付きます) であるエントリポイントとなる関数を見つけられないことを示しています。`_start` 関数をエントリポイントとして設定するには、`-e` というリンカ引数を渡します:
 
-```
+```bash
 cargo rustc -- -C link-args="-e __start"
 ```
 
-The `-e` flag specifies the name of the entry point function. Since all functions have an additional `_` prefix on macOS, we need to set the entry point to `__start` instead of `_start`.
+`-e` というフラグでエントリポイントとなる関数の名前を指定できます。macOS 上では全ての関数には `_` というプレフィックスが追加されるので、`_start` ではなく `__start` にエントリポイントを設定する必要があります。
 
-Now the following linker error occurs:
+これにより、次のようなリンカエラーが発生します:
 
 ```
 error: linking with `cc` failed: exit code: 1
@@ -389,15 +389,15 @@ error: linking with `cc` failed: exit code: 1
           clang: error: linker command failed with exit code 1 […]
 ```
 
-macOS [does not officially support statically linked binaries] and requires programs to link the `libSystem` library by default. To override this and link a static binary, we pass the `-static` flag to the linker:
+macOS は[正式には静的にリンクされたバイナリをサポートしておらず][does not officially support statically linked binaries]、プログラムはデフォルトで `libSystem` ライブラリにリンクされる必要があります。これを無効にして静的バイナリをリンクするには、`-static` フラグをリンカに渡します:
 
 [does not officially support statically linked binaries]: https://developer.apple.com/library/content/qa/qa1118/_index.html
 
-```
+```bash
 cargo rustc -- -C link-args="-e __start -static"
 ```
 
-This still not suffices, as a third linker error occurs:
+これでもまだ十分ではありません、3つ目のリンカエラーが発生します:
 
 ```
 error: linking with `cc` failed: exit code: 1
@@ -407,13 +407,13 @@ error: linking with `cc` failed: exit code: 1
           clang: error: linker command failed with exit code 1 […]
 ```
 
-This error occurs because programs on macOS link to `crt0` (“C runtime zero”) by default. This is similar to the error we had on Linux and can be also solved by adding the `-nostartfiles` linker argument:
+このエラーは、macOS 上のプログラムがデフォルトで `crt0` ("C runtime zero") にリンクされるために発生します。これは Linux 上で起きたエラーと似ており、`-nostartfiles` というリンカ引数を追加することで解決できます:
 
-```
+```bash
 cargo rustc -- -C link-args="-e __start -static -nostartfiles"
 ```
 
-Now our program should build successfully on macOS.
+これで 私達のプログラムを macOS 上で正しくビルドできます。
 
 #### Unifying the Build Commands
 
