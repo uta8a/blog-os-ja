@@ -317,28 +317,28 @@ cargo rustc -- -C link-arg=-nostartfiles
 
 #### Windows
 
-On Windows, a different linker error occurs (shortened):
+Windows では別のリンカエラーが発生します(抜粋):
 
-```
+```bash
 error: linking with `link.exe` failed: exit code: 1561
   |
   = note: "C:\\Program Files (x86)\\…\\link.exe" […]
   = note: LINK : fatal error LNK1561: entry point must be defined
 ```
 
-The "entry point must be defined" error means that the linker can't find the entry point. On Windows, the default entry point name [depends on the used subsystem][windows-subsystems]. For the `CONSOLE` subsystem the linker looks for a function named `mainCRTStartup` and for the `WINDOWS` subsystem it looks for a function named `WinMainCRTStartup`. To override the default and tell the linker to look for our `_start` function instead, we can pass an `/ENTRY` argument to the linker:
+"entry point must be defined" というエラーは、リンカがエントリポイントを見つけられていないことを意味します。Windows では、デフォルトのエントリポイント名は[使用するサブシステム][windows-subsystems]によって異なります。`CONSOLE` サブシステムの場合、リンカは `mainCRTStartup` という名前の関数を探し、`WINDOWS` サブシステムの場合は、`WinMainCRTStartup` という名前の関数を探します。デフォルトの動作を無効にし、代わりに `_start` 関数を探すようにリンカに指示するには、`/ENTRY` 引数をリンカに渡します:
 
 [windows-subsystems]: https://docs.microsoft.com/en-us/cpp/build/reference/entry-entry-point-symbol
 
-```
+```bash
 cargo rustc -- -C link-arg=/ENTRY:_start
 ```
 
-From the different argument format we clearly see that the Windows linker is a completely different program than the Linux linker.
+引数の形式が異なることから、Windows のリンカは Linux のリンカとは全く異なるプログラムであることが分かります。
 
-Now a different linker error occurs:
+これにより、別のリンカエラーが発生します:
 
-```
+```bash
 error: linking with `link.exe` failed: exit code: 1221
   |
   = note: "C:\\Program Files (x86)\\…\\link.exe" […]
@@ -346,15 +346,17 @@ error: linking with `link.exe` failed: exit code: 1221
           defined
 ```
 
+このエラーは Windows での実行可能ファイルが異なる [subsystems][windows-subsystems] を使用することができるために発生します。通常のプログラムでは、エントリポイント名に基づいて推定されます。エントリポイントが `main` という名前の場合は `CONSOLE` サブシステムが使用され、エントリポイント名が `WinMain` である場合には `WINDOWS` サブシステムが使用されます。`_start` 関数は別の名前を持っているので、サブシステムを明示的に指定する必要があります:
+
 This error occurs because Windows executables can use different [subsystems][windows-subsystems]. For normal programs they are inferred depending on the entry point name: If the entry point is named `main`, the `CONSOLE` subsystem is used, and if the entry point is named `WinMain`, the `WINDOWS` subsystem is used. Since our `_start` function has a different name, we need to specify the subsystem explicitly:
 
-```
+```bash
 cargo rustc -- -C link-args="/ENTRY:_start /SUBSYSTEM:console"
 ```
 
-We use the `CONSOLE` subsystem here, but the `WINDOWS` subsystem would work too. Instead of passing `-C link-arg` multiple times, we use `-C link-args` which takes a space separated list of arguments.
+ここでは `CONSOLE` サブシステムを使用しますが、`WINDOWS` サブシステムを使うこともできます。`-C link-arg` を複数渡す代わりに、スペースで区切られたリストを引数として取る `-C link-args` を渡します。
 
-With this command, our executable should build successfully on Windows.
+このコマンドで、実行可能ファイルが Windows 上で正しくビルドされます。
 
 #### macOS
 
