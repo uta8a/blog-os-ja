@@ -1,6 +1,8 @@
 # blog-os-ja
 
-Translations in Japanese of "Writing an OS in Rust".
+Translations in Japanese of ["Writing an OS in Rust"].
+
+["Writing an OS in Rust"]: https://github.com/phil-opp/blog_os/
 
 The content is available [here][blog].
 
