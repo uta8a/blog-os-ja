@@ -1,18 +1,13 @@
 # A Minimal Rust Kernel
 
-In this post we create a minimal 64-bit Rust kernel for the x86 architecture. We build upon the [freestanding Rust binary] from the previous post to create a bootable disk image, that prints something to the screen.
+この記事では、x86 アーキテクチャ用の小さな 64-bit カーネルを Rust でつくります。一つ前の記事の ["freestanding Rust binary"] をもとに、ブート可能なディスクイメージを作成し、画面に何か文字を出力します。
 
-[freestanding Rust binary]: ./01-freestanding-rust-binary.html
+["freestanding Rust binary"]: ./01-freestanding-rust-binary.html
 
-<!-- more -->
-
-This blog is openly developed on [GitHub]. If you have any problems or questions, please open an issue there. You can also leave comments [at the bottom]. The complete source code for this post can be found in the [`post-02`][post branch] branch.
+このブログの内容は [GitHub] 上で公開・開発されています。何か問題や質問などがあれば issue をたててください (訳注: リンクは原文(英語)のものになります)。この記事の完全なソースコードは [`post-01` ブランチ][post branch]にあります。
 
 [GitHub]: https://github.com/phil-opp/blog_os
-[at the bottom]: #comments
 [post branch]: https://github.com/phil-opp/blog_os/tree/post-02
-
-<!-- toc -->
 
 ## The Boot Process
 When you turn on a computer, it begins executing firmware code that is stored in motherboard [ROM]. This code performs a [power-on self-test], detects available RAM, and pre-initializes the CPU and hardware. Afterwards it looks for a bootable disk and starts booting the operating system kernel.
