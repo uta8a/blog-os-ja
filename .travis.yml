@@ -2,9 +2,6 @@ language: rust
 rust: stable
 dist: xenial
 
-branches:
-  only: master
-
 before_script:
   - rustc -V
   - cargo -V
