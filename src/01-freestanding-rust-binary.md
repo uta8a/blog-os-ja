@@ -438,11 +438,13 @@ rustflags = ["-C", "link-args=-e __start -static -nostartfiles"]
 
 これで私達のプログラムは3つすべてのプラットフォーム上で、シンプルに `cargo build` のみでビルドすることができるようになります。
 
-#### Should You Do This?
+#### 私達はこれをすべきですか？
 
-While it's possible to build a freestanding executable for Linux, Windows, and macOS, it's probably not a good idea. The reason is that our executable still expects various things, for example that a stack is initialized when the `_start` function is called. Without the C runtime, some of these requirements might not be fulfilled, which might cause our program to fail, e.g. through a segmentation fault.
+これらの手順で Linux、Windows および macOS 用の独立した実行可能ファイルをビルドすることはできますが、おそらく良い方法ではありません。その理由は、例えば `_start` 関数が呼ばれたときにスタックが初期化されるなど、まだ色々なことを前提としているからです。C ランタイムがなければ、これらの要件のうちいくつかが満たされない可能性があり、セグメンテーション違反(segfault)などによってプログラムが失敗する可能性があります。
 
-If you want to create a minimal binary that runs on top of an existing operating system, including `libc` and setting the `#[start]` attribute as described [here](https://doc.rust-lang.org/1.16.0/book/no-stdlib.html) is probably a better idea.
+もし既存の OS 上で動作する最小限のバイナリを作成したいなら、`libc` を使って `#[start]` attribute を[ここ][no-stdlib]で説明するとおりに設定するのが良いでしょう。
+
+[no-stdlib]: (https://doc.rust-lang.org/1.16.0/book/no-stdlib.html)
 
 </details>
 
