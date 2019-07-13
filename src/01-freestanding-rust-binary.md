@@ -415,9 +415,9 @@ cargo rustc -- -C link-args="-e __start -static -nostartfiles"
 
 これで 私達のプログラムを macOS 上で正しくビルドできます。
 
-#### Unifying the Build Commands
+#### ビルドコマンドの統一
 
-Right now we have different build commands depending on the host platform, which is not ideal. To avoid this, we can create a file named `.cargo/config` that contains the platform specific arguments:
+現時点では、ホストプラットフォームによって異なるビルドコマンドを使っていますが、これは理想的ではありません。これを回避するために、プラットフォーム固有の引数を含む `.cargo/config` というファイルを作成します:
 
 ```toml
 # in .cargo/config
@@ -432,9 +432,11 @@ rustflags = ["-C", "link-args=/ENTRY:_start /SUBSYSTEM:console"]
 rustflags = ["-C", "link-args=-e __start -static -nostartfiles"]
 ```
 
-The `rustflags` key contains arguments that are automatically added to every invocation of `rustc`. For more information on the `.cargo/config` file check out the [official documentation](https://doc.rust-lang.org/cargo/reference/config.html).
+`rustflags` には `rustc` を呼び出すたびに自動的に追加される引数が含まれています。`.cargo/config` についての詳細は[公式のドキュメント][official documentation]を確認してください。
 
-Now our program should be buildable on all three platforms with a simple `cargo build`.
+[official documentation]: (https://doc.rust-lang.org/cargo/reference/config.html)
+
+これで私達のプログラムは3つすべてのプラットフォーム上で、シンプルに `cargo build` のみでビルドすることができるようになります。
 
 #### Should You Do This?
 
