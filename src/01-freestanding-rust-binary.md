@@ -510,8 +510,8 @@ cargo rustc -- -C link-args="-e __start -static -nostartfiles"
 
 これは独立した Rust バイナリの最小の例にすぎないことに注意してください。このバイナリは `_start` 関数が呼び出されたときにスタックが初期化されるなど、さまざまなことを前提としています。**そのため、このようなバイナリを実際に使用するには、より多くの手順が必要となります**。
 
-## What's next?
+## 次は？
 
-The [next post] explains the steps needed for turning our freestanding binary into a minimal operating system kernel. This includes creating a custom target, combining our executable with a bootloader, and learning how to print something to the screen.
+[次の記事][next post]では、この独立したバイナリを最小限の OS カーネルにするために必要なステップを説明しています。カスタムターゲットの作成、実行可能ファイルとブートローダの組み合わせ、画面に何か文字を表示する方法について説明しています。
 
-[next post]: ./second-edition/posts/02-minimal-rust-kernel/index.md
+[next post]: ./02-minimal-rust-kernel.html
