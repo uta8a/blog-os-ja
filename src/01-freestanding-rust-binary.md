@@ -1,12 +1,12 @@
 # A Freestanding Rust Binary
 
-私達自身のオペレーティングシステム(以下、OS)カーネルを作っていく最初のステップは標準ライブラリとリンクしない Rust の実行環境をつくることです。 これにより、基盤となる OS がない[ベアメタル][bare metal]上で Rust のコードを実行することができるようになります。
+私達自身のオペレーティングシステム(以下、OS)カーネルを作っていく最初のステップは標準ライブラリとリンクしない Rust の実行環境をつくることです。これにより、基盤となる OS がない[ベアメタル][bare metal]上で Rust のコードを実行することができるようになります。
 
 [bare metal]: https://en.wikipedia.org/wiki/Bare_machine
 
 <!-- more -->
 
-このブログの内容は [GitHub] 上で公開・開発されています。 何か問題や質問などがあれば issue をたててください (訳注: リンクは原文(英語)のものになります)。 この記事の完全なソースコードは[`post-01` ブランチ][post branch]にあります。
+このブログの内容は [GitHub] 上で公開・開発されています。何か問題や質問などがあれば issue をたててください (訳注: リンクは原文(英語)のものになります)。この記事の完全なソースコードは[`post-01` ブランチ][post branch]にあります。
 
 [GitHub ]: https://github.com/phil-opp/blog_os
 [post branch]: https://github.com/phil-opp/blog_os/tree/post-01
@@ -15,9 +15,9 @@
 
 ## 導入
 
-OS カーネルを書くためには、いかなる OS の機能にも依存しないコードが必要となります。 つまり、スレッドやヒープメモリ、ネットワーク、乱数、標準出力、その他 OS による抽象化や特定のハードウェアを必要とする機能は使えません。 私達は自分自身で OS とそのドライバを書こうとしているので、これは理にかなっています。
+OS カーネルを書くためには、いかなる OS の機能にも依存しないコードが必要となります。つまり、スレッドやヒープメモリ、ネットワーク、乱数、標準出力、その他 OS による抽象化や特定のハードウェアを必要とする機能は使えません。私達は自分自身で OS とそのドライバを書こうとしているので、これは理にかなっています。
 
-これは [Rust の標準ライブラリ][Rust standard library]をほとんど使えないということを意味しますが、それでも私達が使うことのできる Rust の機能はたくさんあります。 例えば、[イテレータ][iterators]や[クロージャ][closures]、[パターンマッチング][pattern matching]、 [`Option`][option] や [`Result`][result] 型に[文字列フォーマット][string formatting]、そしてもちろん[所有権システム][ownership system]を使うことができます。 これらの機能により、[未定義動作][undefined behavior]や[メモリ安全性][memory safety]を気にせずに、高い水準で表現力豊かにカーネルを書くことができます。
+これは [Rust の標準ライブラリ][Rust standard library]をほとんど使えないということを意味しますが、それでも私達が使うことのできる Rust の機能はたくさんあります。例えば、[イテレータ][iterators]や[クロージャ][closures]、[パターンマッチング][pattern matching]、 [`Option`][option] や [`Result`][result] 型に[文字列フォーマット][string formatting]、そしてもちろん[所有権システム][ownership system]を使うことができます。これらの機能により、[未定義動作][undefined behavior]や[メモリ安全性][memory safety]を気にせずに、高い水準で表現力豊かにカーネルを書くことができます。
 
 [option]: https://doc.rust-lang.org/core/option/
 [result]:https://doc.rust-lang.org/core/result/
@@ -30,24 +30,24 @@ OS カーネルを書くためには、いかなる OS の機能にも依存し�
 [undefined behavior]: https://www.nayuki.io/page/undefined-behavior-in-c-and-cplusplus-programs
 [memory safety]: https://tonyarcieri.com/it-s-time-for-a-memory-safety-intervention
 
-Rust で OS カーネルを書くには、基盤となる OS なしで動く実行環境をつくる必要があります。 そのような実行環境はフリースタンディング環境やベアメタルのように呼ばれます。
+Rust で OS カーネルを書くには、基盤となる OS なしで動く実行環境をつくる必要があります。そのような実行環境はフリースタンディング環境やベアメタルのように呼ばれます。
 
-この記事では、フリースタンディングな Rust のバイナリをつくるために必要なステップを紹介し、なぜそれが必要なのかを説明します。 もし最小限の説明だけを読みたいのであれば **[概要](#概要)** まで飛ばしてください。
+この記事では、フリースタンディングな Rust のバイナリをつくるために必要なステップを紹介し、なぜそれが必要なのかを説明します。もし最小限の説明だけを読みたいのであれば **[概要](#概要)** まで飛ばしてください。
 
 ## 標準ライブラリの無効化
 
-デフォルトでは、全ての Rust クレートは[標準ライブラリ][standard library]にリンクされています。標準ライブラリはスレッドやファイル、ネットワークのような OS の機能に依存しています。 また OS と密接な関係にある C の標準ライブラリ( `libc` )にも依存しています。 私達の目的は OS を書くことなので、 OS 依存のライブラリを使うことはできません。 そのため、 [`no_std` attribute] を使って標準ライブラリが自動的にリンクされるのを無効にします。
+デフォルトでは、全ての Rust クレートは[標準ライブラリ][standard library]にリンクされています。標準ライブラリはスレッドやファイル、ネットワークのような OS の機能に依存しています。また OS と密接な関係にある C の標準ライブラリ( `libc` )にも依存しています。私達の目的は OS を書くことなので、 OS 依存のライブラリを使うことはできません。そのため、 [`no_std` attribute] を使って標準ライブラリが自動的にリンクされるのを無効にします。
 
 [standard library]: https://doc.rust-lang.org/std/
 [`no_std` attribute]: https://doc.rust-lang.org/1.30.0/book/first-edition/using-rust-without-the-standard-library.html
 
-新しい Cargo プロジェクトをつくるところから始めましょう。 もっとも簡単なやり方はコマンドラインで以下を実行することです。
+新しい Cargo プロジェクトをつくるところから始めましょう。もっとも簡単なやり方はコマンドラインで以下を実行することです。
 
 ```bash
 cargo new blog_os --bin --edition 2018
 ```
 
-プロジェクト名を `blog_os` としましたが、もちろんお好きな名前をつけていただいても大丈夫です。 `--bin`フラグは実行可能バイナリを作成することを、 `--edition 2018` は[2018エディション][2018 edition]を使用することを明示的に指定します。 コマンドを実行すると、 Cargoは以下のようなディレクトリ構造を作成します:
+プロジェクト名を `blog_os` としましたが、もちろんお好きな名前をつけていただいても大丈夫です。`--bin`フラグは実行可能バイナリを作成することを、 `--edition 2018` は[2018エディション][2018 edition]を使用することを明示的に指定します。コマンドを実行すると、 Cargoは以下のようなディレクトリ構造を作成します:
 
 [2018 edition]: https://rust-lang-nursery.github.io/edition-guide/rust-2018/index.html
 
@@ -58,13 +58,13 @@ blog_os
     └── main.rs
 ```
 
-`Cargo.toml` にはクレートの名前や作者名、[セマンティックバージョニング][semantic version]に基づくバージョンナンバーや依存関係などが書かれています。 `src/main.rs` には私達のクレートのルートモジュールと `main` 関数が含まれています。 `cargo build` コマンドでこのクレートをコンパイルして、 `target/debug` ディレクトリの中にあるコンパイルされた `blog_os` バイナリを実行することができます。
+`Cargo.toml` にはクレートの名前や作者名、[セマンティックバージョニング][semantic version]に基づくバージョンナンバーや依存関係などが書かれています。`src/main.rs` には私達のクレートのルートモジュールと `main` 関数が含まれています。`cargo build` コマンドでこのクレートをコンパイルして、 `target/debug` ディレクトリの中にあるコンパイルされた `blog_os` バイナリを実行することができます。
 
 [semantic version]: http://semver.org/
 
 ### `no_std` Attribute
 
-今のところ私達のクレートは暗黙のうちに標準ライブラリをリンクしています。 [`no_std` attribute]を追加してこれを無効にしてみましょう:
+今のところ私達のクレートは暗黙のうちに標準ライブラリをリンクしています。[`no_std` attribute]を追加してこれを無効にしてみましょう:
 
 ```rust
 // main.rs
@@ -86,7 +86,7 @@ error: cannot find macro `println!` in this scope
   |     ^^^^^^^
 ```
 
-これは [`println` マクロ][`println` macro]が標準ライブラリに含まれているためです。 `no_std` で標準ライブラリを無効にしたので、何かをプリントすることはできなくなりました。 `println` は標準出力に書き込むのでこれは理にかなっています。 [標準出力][standard output]は OS によって提供される特別なファイル記述子であるためです。
+これは [`println` マクロ][`println` macro]が標準ライブラリに含まれているためです。`no_std` で標準ライブラリを無効にしたので、何かをプリントすることはできなくなりました。`println` は標準出力に書き込むのでこれは理にかなっています。[標準出力][standard output]は OS によって提供される特別なファイル記述子であるためです。
 
 [`println` macro]: https://doc.rust-lang.org/std/macro.println.html
 [standard output]: https://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29
@@ -111,7 +111,7 @@ error: language item required, but not found: `eh_personality`
 
 ## Panic の実装
 
-`panic_handler` attribute は[パニック]が発生したときにコンパイラが呼び出す関数を定義します。 標準ライブラリには独自のパニックハンドラー関数がありますが、 `no_std` 環境では私達の手でそれを実装する必要があります:
+`panic_handler` attribute は[パニック]が発生したときにコンパイラが呼び出す関数を定義します。標準ライブラリには独自のパニックハンドラー関数がありますが、 `no_std` 環境では私達の手でそれを実装する必要があります:
 
 [パニック]: https://doc.rust-lang.org/stable/book/ch09-01-unrecoverable-errors-with-panic.html
 
@@ -127,7 +127,7 @@ fn panic(_info: &PanicInfo) -> ! {
 }
 ```
 
-[`PanicInfo` パラメータ]には、パニックが発生したファイルと行、およびオプションでパニックメッセージが含まれます。 この関数は戻り値を取るべきではないので、]"never" 型(`!`)][“never” type]を返すことで[発散する関数][diverging function]となります。 今のところこの関数でできることは多くないので、無限にループするだけです。
+[`PanicInfo` パラメータ]には、パニックが発生したファイルと行、およびオプションでパニックメッセージが含まれます。この関数は戻り値を取るべきではないので、]"never" 型(`!`)][“never” type]を返すことで[発散する関数][diverging function]となります。今のところこの関数でできることは多くないので、無限にループするだけです。
 
 [`PanicInfo` パラメータ]: https://doc.rust-lang.org/nightly/core/panic/struct.PanicInfo.html
 [diverging function]: https://doc.rust-lang.org/1.30.0/book/first-edition/functions.html#diverging-functions
@@ -135,14 +135,14 @@ fn panic(_info: &PanicInfo) -> ! {
 
 ## `eh_personality` Language Item
 
-language item はコンパイラによって内部的に必要とされる特別な関数や型です。 例えば、[`Copy`] トレイトはどの型が[コピーセマンティクス][`Copy`]を持っているかをコンパイラに伝える language item です。 [実装][copy code]を見てみると、 language item として定義されている特別な `#[lang = "copy"]` attribute を持っていることが分かります。
+language item はコンパイラによって内部的に必要とされる特別な関数や型です。例えば、[`Copy`] トレイトはどの型が[コピーセマンティクス][`Copy`]を持っているかをコンパイラに伝える language item です。[実装][copy code]を見てみると、 language item として定義されている特別な `#[lang = "copy"]` attribute を持っていることが分かります。
 
 [`Copy`]: https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html
 [copy code]: https://github.com/rust-lang/rust/blob/485397e49a02a3b7ff77c17e4a3f16c653925cb3/src/libcore/marker.rs#L296-L299
 
-独自に language item を実装することもできますが、これは最終手段として行われるべきでしょう。 というのも、language item は非常に不安定な実装であり型検査も行われないからです(なので、コンパイラは関数が正しい引数の型を取っているかさえ検査しません)。 幸い、上記の language item のエラーを修正するためのより安定した方法があります。
+独自に language item を実装することもできますが、これは最終手段として行われるべきでしょう。というのも、language item は非常に不安定な実装であり型検査も行われないからです(なので、コンパイラは関数が正しい引数の型を取っているかさえ検査しません)。幸い、上記の language item のエラーを修正するためのより安定した方法があります。
 
-`eh_personality` language item は[スタックアンワインド][stack unwinding] を実装するための関数を定義します。 デフォルトでは、パニックが起きた場合には Rust はアンワインドを使用してすべてのスタックにある変数のデストラクタを実行します。 これにより、使用されている全てのメモリが確実に解放され、親スレッドはパニックを検知して実行を継続できます。 しかしアンワインドは複雑であり、いくつかの OS 特有のライブラリ(例えば、Linux では [libunwind] 、Windows では[構造化例外][structured exception handling])を必要とするので、私達の OS には使いたくありません。
+`eh_personality` language item は[スタックアンワインド][stack unwinding] を実装するための関数を定義します。デフォルトでは、パニックが起きた場合には Rust はアンワインドを使用してすべてのスタックにある変数のデストラクタを実行します。これにより、使用されている全てのメモリが確実に解放され、親スレッドはパニックを検知して実行を継続できます。しかしアンワインドは複雑であり、いくつかの OS 特有のライブラリ(例えば、Linux では [libunwind] 、Windows では[構造化例外][structured exception handling])を必要とするので、私達の OS には使いたくありません。
 
 [stack unwinding]: http://www.bogotobogo.com/cplusplus/stackunwinding.php
 [libunwind]: http://www.nongnu.org/libunwind/
@@ -150,7 +150,7 @@ language item はコンパイラによって内部的に必要とされる特別
 
 ### アンワインドの無効化
 
-他にもアンワインドが望ましくないユースケースがあります。 そのため、Rust には代わりに[パニックで中止する][abort on panic]オプションがあります。 これにより、アンワインドのシンボル情報の生成が無効になり、バイナリサイズが大幅に削減されます。 アンワインドを無効にする方法は複数あります。 もっとも簡単な方法は、`Cargo.toml` に次の行を追加することです:
+他にもアンワインドが望ましくないユースケースがあります。そのため、Rust には代わりに[パニックで中止する][abort on panic]オプションがあります。これにより、アンワインドのシンボル情報の生成が無効になり、バイナリサイズが大幅に削減されます。アンワインドを無効にする方法は複数あります。もっとも簡単な方法は、`Cargo.toml` に次の行を追加することです:
 
 ```toml
 [profile.dev]
@@ -160,11 +160,11 @@ panic = "abort"
 panic = "abort"
 ```
 
-これは dev プロファイル(`cargo build` に使用される)と release プロファイル(`cargo build --release` に使用される)の両方でパニックで中止するようにするための設定です。 これで `eh_personality` language item が不要になりました。
+これは dev プロファイル(`cargo build` に使用される)と release プロファイル(`cargo build --release` に使用される)の両方でパニックで中止するようにするための設定です。これで `eh_personality` language item が不要になりました。
 
 [abort on panic]: https://github.com/rust-lang/rust/pull/32900
 
-これで上の2つのエラーを修正しました。 しかし、コンパイルしようとすると別のエラーが発生します:
+これで上の2つのエラーを修正しました。しかし、コンパイルしようとすると別のエラーが発生します:
 
 ```bash
 > cargo build
@@ -175,15 +175,15 @@ error: requires `start` lang_item
 
 ## `start` attribute
 
-`main` 関数はプログラムを実行したときに最初に呼び出される関数であると思うかもしれません。 しかし、ほとんどの言語には[ランタイムシステム][runtime system]があり、これはガベージコレクション(Java など)やソフトウェアスレッド(Go のゴルーチン)などを処理します。 ランタイムは自身を初期化する必要があるため、`main` 関数の前に呼び出す必要があります。 これにはスタック領域の作成と正しいレジスタへの引数の配置が含まれます。
+`main` 関数はプログラムを実行したときに最初に呼び出される関数であると思うかもしれません。しかし、ほとんどの言語には[ランタイムシステム][runtime system]があり、これはガベージコレクション(Java など)やソフトウェアスレッド(Go のゴルーチン)などを処理します。ランタイムは自身を初期化する必要があるため、`main` 関数の前に呼び出す必要があります。これにはスタック領域の作成と正しいレジスタへの引数の配置が含まれます。
 
 [runtime system]: https://en.wikipedia.org/wiki/Runtime_system
 
-標準ライブラリをリンクする一般的な Rust バイナリでは、`crt0` ("C runtime zero")と呼ばれる C のランタイムライブラリで実行が開始され、C アプリケーションの環境が設定されます。 その後 C ランタイムは、`start` language item で定義されている [Rust ランタイムのエントリポイント][rt::lang_start]を呼び出します。 Rust にはごくわずかなランタイムしかありません。 これは、スタックオーバーフローを防ぐ設定やパニック時のバックトレースの表示など、いくつかの小さな処理を行います。最後に、ランタイムは `main` 関数を呼び出します。
+標準ライブラリをリンクする一般的な Rust バイナリでは、`crt0` ("C runtime zero")と呼ばれる C のランタイムライブラリで実行が開始され、C アプリケーションの環境が設定されます。その後 C ランタイムは、`start` language item で定義されている [Rust ランタイムのエントリポイント][rt::lang_start]を呼び出します。Rust にはごくわずかなランタイムしかありません。これは、スタックオーバーフローを防ぐ設定やパニック時のバックトレースの表示など、いくつかの小さな処理を行います。最後に、ランタイムは `main` 関数を呼び出します。
 
 [rt::lang_start]: https://github.com/rust-lang/rust/blob/bb4d1491466d8239a7a5fd68bd605e3276e97afb/src/libstd/rt.rs#L32-L73
 
-私達のフリースタンディングな実行可能ファイルは今のところ Rust ランタイムと `crt0` へアクセスできません。なので、私達は自身でエントリポイントを定義する必要があります。 `start` language item を実装することは `crt0` を必要とするのでここではできません。代わりに `crt0` エントリポイントを直接上書きしなければなりません。
+私達のフリースタンディングな実行可能ファイルは今のところ Rust ランタイムと `crt0` へアクセスできません。なので、私達は自身でエントリポイントを定義する必要があります。`start` language item を実装することは `crt0` を必要とするのでここではできません。代わりに `crt0` エントリポイントを直接上書きしなければなりません。
 
 ### エントリポイントの上書き
 
@@ -202,7 +202,7 @@ fn panic(_info: &PanicInfo) -> ! {
 }
 ```
 
-`main` 関数を削除したことに気付いたかもしれません。 `main` 関数を呼び出す基盤となるランタイムなしには置いていても意味がないからです。 代わりに、OS のエントリポイントを独自の `_start` 関数で上書きしていきます:
+`main` 関数を削除したことに気付いたかもしれません。`main` 関数を呼び出す基盤となるランタイムなしには置いていても意味がないからです。代わりに、OS のエントリポイントを独自の `_start` 関数で上書きしていきます:
 
 ```rust
 #[no_mangle]
@@ -211,14 +211,14 @@ pub extern "C" fn _start() -> ! {
 }
 ```
 
-Rust コンパイラが `_start` という名前の関数を実際に出力するように、`#[no_mangle]` attributeを用いて[名前修飾][name mangling]を無効にします。 この attribute がないと、コンパイラはすべての関数にユニークな名前をつけるために、 `_ZN3blog_os4_start7hb173fedf945531caE` のようなシンボルを生成します。 次のステップでエントリポイントとなる関数の名前をリンカに伝えるため、この属性が必要となります。
+Rust コンパイラが `_start` という名前の関数を実際に出力するように、`#[no_mangle]` attributeを用いて[名前修飾][name mangling]を無効にします。この attribute がないと、コンパイラはすべての関数にユニークな名前をつけるために、 `_ZN3blog_os4_start7hb173fedf945531caE` のようなシンボルを生成します。次のステップでエントリポイントとなる関数の名前をリンカに伝えるため、この属性が必要となります。
 
-また、(指定されていない Rust の呼び出し規約の代わりに)この関数に [C の呼び出し規約][C calling convention]を使用するようコンパイラに伝えるために、関数を `extern "C"` として定義する必要があります。 `_start`という名前をつける理由は、これがほとんどのシステムのデフォルトのエントリポイント名だからです。
+また、(指定されていない Rust の呼び出し規約の代わりに)この関数に [C の呼び出し規約][C calling convention]を使用するようコンパイラに伝えるために、関数を `extern "C"` として定義する必要があります。`_start`という名前をつける理由は、これがほとんどのシステムのデフォルトのエントリポイント名だからです。
 
 [name mangling]: https://en.wikipedia.org/wiki/Name_mangling
 [C calling convention]: https://en.wikipedia.org/wiki/Calling_convention
 
-戻り値の型である `!` は関数が発散している、つまり値を返すことができないことを意味しています。 エントリポイントはどの関数からも呼び出されず、OS またはブートローダから直接呼び出されるので、これは必須です。なので、値を返す代わりに、エントリポイントは例えば OS の [`exit` システムコール][`exit` system call]を呼び出します。 今回はフリースタンディングなバイナリが返されたときマシンをシャットダウンするようにすると良いでしょう。 今のところ、私達は無限ループを起こすことで要件を満たします。
+戻り値の型である `!` は関数が発散している、つまり値を返すことができないことを意味しています。エントリポイントはどの関数からも呼び出されず、OS またはブートローダから直接呼び出されるので、これは必須です。なので、値を返す代わりに、エントリポイントは例えば OS の [`exit` システムコール][`exit` system call]を呼び出します。今回はフリースタンディングなバイナリが返されたときマシンをシャットダウンするようにすると良いでしょう。今のところ、私達は無限ループを起こすことで要件を満たします。
 
 [`exit` system call]: https://en.wikipedia.org/wiki/Exit_(system_call)
 
@@ -226,15 +226,15 @@ Rust コンパイラが `_start` という名前の関数を実際に出力す�
 
 ## リンカエラー
 
-リンカは、生成されたコードを実行可能ファイルに紐付けるプログラムです。 実行可能ファイルの形式は Linux や Windows、macOS でそれぞれ異なるため、各システムにはそれぞれ異なるエラーを発生させる独自のリンカがあります。 エラーの根本的な原因は同じです。 リンカのデフォルト設定では、プログラムが C ランタイムに依存していると仮定していますが、実際にはしていません。
+リンカは、生成されたコードを実行可能ファイルに紐付けるプログラムです。実行可能ファイルの形式は Linux や Windows、macOS でそれぞれ異なるため、各システムにはそれぞれ異なるエラーを発生させる独自のリンカがあります。エラーの根本的な原因は同じです。リンカのデフォルト設定では、プログラムが C ランタイムに依存していると仮定していますが、実際にはしていません。
 
-エラーを回避するためにはリンカに C ランタイムに依存しないことを伝える必要があります。 これはリンカに一連の引数を渡すか、ベアメタルターゲット用にビルドすることで可能となります。
+エラーを回避するためにはリンカに C ランタイムに依存しないことを伝える必要があります。これはリンカに一連の引数を渡すか、ベアメタルターゲット用にビルドすることで可能となります。
 
 ### ベアメタルターゲット用にビルドする
 
-デフォルトでは、Rust は現在のシステム環境に合った実行可能ファイルをビルドしようとします。 例えば、`x86_64` で Windows を使用している場合、Rust は `x86_64` 用の `.exe` Windows 実行可能ファイルをビルドしようとします。 このような環境は「ホスト」システムと呼ばれます。
+デフォルトでは、Rust は現在のシステム環境に合った実行可能ファイルをビルドしようとします。例えば、`x86_64` で Windows を使用している場合、Rust は `x86_64` 用の `.exe` Windows 実行可能ファイルをビルドしようとします。このような環境は「ホスト」システムと呼ばれます。
 
-様々な環境を表現するために、Rust は [_target triple_] という文字列を使います。 `rustc --version --verbose` を実行すると、ホストシステムの target triple を確認できます:
+様々な環境を表現するために、Rust は [_target triple_] という文字列を使います。`rustc --version --verbose` を実行すると、ホストシステムの target triple を確認できます:
 
 [_target triple_]: https://clang.llvm.org/docs/CrossCompilation.html#target-triple
 
@@ -248,13 +248,13 @@ release: 1.35.0-nightly
 LLVM version: 8.0
 ```
 
-上記の出力は `x86_64` の Linux によるものです。 `host` は `x86_64-unknown-linux-gnu` です。 これには CPU アーキテクチャ(`x86_64`)、ベンダー(`unknown`)、OS(`Linux`)、そして [ABI] (`gnu`)が含まれています。
+上記の出力は `x86_64` の Linux によるものです。`host` は `x86_64-unknown-linux-gnu` です。これには CPU アーキテクチャ(`x86_64`)、ベンダー(`unknown`)、OS(`Linux`)、そして [ABI] (`gnu`)が含まれています。
 
 [ABI]: https://en.wikipedia.org/wiki/Application_binary_interface
 
-ホストの triple 用にコンパイルすることで、Rust コンパイラとリンカは、デフォルトで C ランタイムを使用する Linux や Windows のような基盤となる OS があると想定し、それによってリンカエラーが発生します。 なのでリンカエラーを回避するために、基盤となる OS を使用せずに異なる環境用にコンパイルします。
+ホストの triple 用にコンパイルすることで、Rust コンパイラとリンカは、デフォルトで C ランタイムを使用する Linux や Windows のような基盤となる OS があると想定し、それによってリンカエラーが発生します。なのでリンカエラーを回避するために、基盤となる OS を使用せずに異なる環境用にコンパイルします。
 
-このようなベアメタル環境の例としては、`thumbv7em-none-eabihf` target triple があります。 これは、[組込みシステム][embedded]を表しています。 詳細は省きますが、重要なのは `none` という文字列からわかるように、 この target triple に基盤となる OS がないことです。 このターゲット用にコンパイルできるようにするには、 rustup にこれを追加する必要があります:
+このようなベアメタル環境の例としては、`thumbv7em-none-eabihf` target triple があります。これは、[組込みシステム][embedded]を表しています。詳細は省きますが、重要なのは `none` という文字列からわかるように、 この target triple に基盤となる OS がないことです。このターゲット用にコンパイルできるようにするには、 rustup にこれを追加する必要があります:
 
 [embedded]: https://en.wikipedia.org/wiki/Embedded_system
 
@@ -262,7 +262,7 @@ LLVM version: 8.0
 rustup target add thumbv7em-none-eabihf
 ```
 
-これにより、この target triple 用の標準(およびコア)ライブラリのコピーがダウンロードされます。 これで、このターゲット用にフリースタンディングな実行可能ファイルをビルドできます:
+これにより、この target triple 用の標準(およびコア)ライブラリのコピーがダウンロードされます。これで、このターゲット用にフリースタンディングな実行可能ファイルをビルドできます:
 
 ```bash
 cargo build --target thumbv7em-none-eabihf
@@ -272,13 +272,13 @@ cargo build --target thumbv7em-none-eabihf
 
 [cross compile]: https://en.wikipedia.org/wiki/Cross_compiler
 
-これが私達の OS カーネルを書くために使うアプローチです。 `thumbv7em-none-eabihf` の代わりに、`x86_64` のベアメタル環境を表す[カスタムターゲット][custom target]を使用することもできます。詳細は次のセクションで説明します。
+これが私達の OS カーネルを書くために使うアプローチです。`thumbv7em-none-eabihf` の代わりに、`x86_64` のベアメタル環境を表す[カスタムターゲット][custom target]を使用することもできます。詳細は次のセクションで説明します。
 
 [custom target]: https://doc.rust-lang.org/rustc/targets/custom.html
 
 ### リンカへの引数
 
-ベアメタルターゲット用にコンパイルする代わりに、特定の引数のセットをリンカにわたすことでリンカエラーを回避することもできます。 これは私達のカーネルに使用するアプローチではありません。したがって、このセクションはオプションであり、選択肢を増やすために書かれています。 表示するには以下の「リンカへの引数」をクリックしてください。
+ベアメタルターゲット用にコンパイルする代わりに、特定の引数のセットをリンカにわたすことでリンカエラーを回避することもできます。これは私達がカーネルに使用するアプローチではありません。したがって、このセクションはオプションであり、選択肢を増やすために書かれています。表示するには以下の「リンカへの引数」をクリックしてください。
 
 <details>
 
@@ -303,7 +303,7 @@ error: linking with `cc` failed: exit code: 1
           collect2: error: ld returned 1 exit status
 ```
 
-問題は、デフォルトで C ランタイムの起動ルーチンがリンカに含まれていることです。これは `_start` とも呼ばれます。 `no_std` attribute により、C 標準ライブラリ `libc` のいくつかのシンボルが必要となります。なので、リンカはこれらの参照を解決できません。これを解決するために、リンカに `-nostartfiles` フラグを渡して、C の起動ルーチンをリンクしないようにします。
+問題は、デフォルトで C ランタイムの起動ルーチンがリンカに含まれていることです。これは `_start` とも呼ばれます。`no_std` attribute により、C 標準ライブラリ `libc` のいくつかのシンボルが必要となります。なので、リンカはこれらの参照を解決できません。これを解決するために、リンカに `-nostartfiles` フラグを渡して、C の起動ルーチンをリンクしないようにします。
 
 Cargo を通してリンカの attribute を渡す方法の一つに、`cargo rustc` コマンドがあります。このコマンドは `cargo build` と全く同じように動作しますが、基本となる Rust コンパイラである `rustc` にオプションを渡すことができます。`rustc` にはリンカに引数を渡す `-C link-arg` フラグがあります。新しいビルドコマンドは次のようになります:
 
