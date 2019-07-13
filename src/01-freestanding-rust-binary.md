@@ -450,24 +450,24 @@ rustflags = ["-C", "link-args=-e __start -static -nostartfiles"]
 
 ## 概要
 
-A minimal freestanding Rust binary looks like this:
+最小限の独立した Rust バイナリは次のようになります:
 
 `src/main.rs`:
 
 ```rust
-#![no_std] // don't link the Rust standard library
-#![no_main] // disable all Rust-level entry points
+#![no_std] // Rust の標準ライブラリにリンクしない
+#![no_main] // 全ての Rust レベルのエントリポイントを無効にする
 
 use core::panic::PanicInfo;
 
-#[no_mangle] // don't mangle the name of this function
+#[no_mangle] // この関数の名前修飾をしない
 pub extern "C" fn _start() -> ! {
-    // this function is the entry point, since the linker looks for a function
-    // named `_start` by default
+    // リンカはデフォルトで `_start` という名前の関数を探すので、
+    // この関数がエントリポイントとなる
     loop {}
 }
 
-/// This function is called on panic.
+/// この関数はパニック時に呼ばれる
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
@@ -491,13 +491,13 @@ panic = "abort" # disable stack unwinding on panic
 panic = "abort" # disable stack unwinding on panic
 ```
 
-To build this binary, we need to compile for a bare metal target such as `thumbv7em-none-eabihf`:
+このバイナリをビルドするために、`thumbv7em-none-eabihf` のようなベアメタルターゲット用にコンパイルする必要があります:
 
-```
+```bash
 cargo build --target thumbv7em-none-eabihf
 ```
 
-Alternatively, we can compile it for the host system by passing additional linker arguments:
+あるいは、追加のりんか引数を渡してホストシステム用にコンパイルすることもできます:
 
 ```bash
 # Linux
@@ -508,7 +508,7 @@ cargo rustc -- -C link-args="/ENTRY:_start /SUBSYSTEM:console"
 cargo rustc -- -C link-args="-e __start -static -nostartfiles"
 ```
 
-Note that this is just a minimal example of a freestanding Rust binary. This binary expects various things, for example that a stack is initialized when the `_start` function is called. **So it probably for any real use of such a binary, more steps are required**.
+これは独立した Rust バイナリの最小の例にすぎないことに注意してください。このバイナリは `_start` 関数が呼び出されたときにスタックが初期化されるなど、さまざまなことを前提としています。**そのため、このようなバイナリを実際に使用するには、より多くの手順が必要となります**。
 
 ## What's next?
 
