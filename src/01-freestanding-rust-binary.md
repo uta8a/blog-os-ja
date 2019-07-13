@@ -43,7 +43,7 @@ Rust で OS カーネルを書くには、基盤となる OS なしで動く実�
 
 新しい Cargo プロジェクトをつくるところから始めましょう。 もっとも簡単なやり方はコマンドラインで以下を実行することです。
 
-```
+```bash
 cargo new blog_os --bin --edition 2018
 ```
 
@@ -51,7 +51,7 @@ cargo new blog_os --bin --edition 2018
 
 [2018 edition]: https://rust-lang-nursery.github.io/edition-guide/rust-2018/index.html
 
-```
+```bash
 blog_os
 ├── Cargo.toml
 └── src
@@ -78,7 +78,7 @@ fn main() {
 
 (`cargo build` を実行して)ビルドしようとすると、次のようなエラーが発生します:
 
-```
+```bash
 error: cannot find macro `println!` in this scope
  --> src/main.rs:4:5
   |
@@ -101,7 +101,7 @@ error: cannot find macro `println!` in this scope
 fn main() {}
 ```
 
-```
+```bash
 > cargo build
 error: `#[panic_handler]` function required, but not found
 error: language item required, but not found: `eh_personality`
@@ -166,7 +166,7 @@ panic = "abort"
 
 これで上の2つのエラーを修正しました。 しかし、コンパイルしようとすると別のエラーが発生します:
 
-```
+```bash
 > cargo build
 error: requires `start` lang_item
 ```
@@ -238,7 +238,7 @@ Rust コンパイラが `_start` という名前の関数を実際に出力す�
 
 [_target triple_]: https://clang.llvm.org/docs/CrossCompilation.html#target-triple
 
-```
+```bash
 rustc 1.35.0-nightly (474e7a648 2019-04-07)
 binary: rustc
 commit-hash: 474e7a6486758ea6fc761893b1a49cd9076fb0ab
@@ -258,13 +258,13 @@ LLVM version: 8.0
 
 [embedded]: https://en.wikipedia.org/wiki/Embedded_system
 
-```
+```bash
 rustup target add thumbv7em-none-eabihf
 ```
 
 これにより、この target triple 用の標準(およびコア)ライブラリのコピーがダウンロードされます。 これで、このターゲット用にフリースタンディングな実行可能ファイルをビルドできます:
 
-```
+```bash
 cargo build --target thumbv7em-none-eabihf
 ```
 
@@ -272,25 +272,25 @@ cargo build --target thumbv7em-none-eabihf
 
 [cross compile]: https://en.wikipedia.org/wiki/Cross_compiler
 
-これが私達の OS カーネルを書くために使うアプローチです。 実際には、`thumbv7em-none-eabihf` の代わりに、`x86_64` のベアメタル環境を表す[カスタムターゲット][custom target]を使用します。詳細は次の記事で説明します。
+これが私達の OS カーネルを書くために使うアプローチです。 `thumbv7em-none-eabihf` の代わりに、`x86_64` のベアメタル環境を表す[カスタムターゲット][custom target]を使用することもできます。詳細は次のセクションで説明します。
 
 [custom target]: https://doc.rust-lang.org/rustc/targets/custom.html
 
-### Linker Arguments
+### リンカへの引数
 
-Instead of compiling for a bare metal system, it is also possible to resolve the linker errors by passing a certain set of arguments to the linker. This isn't the approach that we will use for our kernel, therefore this section is optional and only provided for completeness. Click on _"Linker Arguments"_ below to show the optional content.
+ベアメタルターゲット用にコンパイルする代わりに、特定の引数のセットをリンカにわたすことでリンカエラーを回避することもできます。 これは私達のカーネルに使用するアプローチではありません。したがって、このセクションはオプションであり、選択肢を増やすために書かれています。 表示するには以下の「リンカへの引数」をクリックしてください。
 
 <details>
 
-<summary>Linker Arguments</summary>
+<summary>リンカへの引数</summary>
 
-In this section we discuss the linker errors that occur on Linux, Windows, and macOS, and explain how to solve them by passing additional arguments to the linker. Note that the executable format and the linker differ between operating systems, so that a different set of arguments is required for each system.
+このセクションでは、Linux、Windows、および macOS で発生するリンカエラーについてと、リンカに追加の引数を渡すことによってそれらを解決する方法を説明します。実行可能ファイルの形式とリンカは OS によって異なるため、システムごとに異なる引数のセットが必要です。
 
 #### Linux
 
-On Linux the following linker error occurs (shortened):
+Linux では以下のようなエラーが発生します(抜粋):
 
-```
+```bash
 error: linking with `cc` failed: exit code: 1
   |
   = note: "cc" […]
@@ -303,17 +303,17 @@ error: linking with `cc` failed: exit code: 1
           collect2: error: ld returned 1 exit status
 ```
 
-The problem is that the linker includes the startup routine of the C runtime by default, which is also called `_start`. It requires some symbols of the C standard library `libc` that we don't include due to the `no_std` attribute, therefore the linker can't resolve these references. To solve this, we can tell the linker that it should not link the C startup routine by passing the `-nostartfiles` flag.
+問題は、デフォルトで C ランタイムの起動ルーチンがリンカに含まれていることです。これは `_start` とも呼ばれます。 `no_std` attribute により、C 標準ライブラリ `libc` のいくつかのシンボルが必要となります。なので、リンカはこれらの参照を解決できません。これを解決するために、リンカに `-nostartfiles` フラグを渡して、C の起動ルーチンをリンクしないようにします。
 
-One way to pass linker attributes via cargo is the `cargo rustc` command. The command behaves exactly like `cargo build`, but allows to pass options to `rustc`, the underlying Rust compiler. `rustc` has the `-C link-arg` flag, which passes an argument to the linker. Combined, our new build command looks like this:
+Cargo を通してリンカの attribute を渡す方法の一つに、`cargo rustc` コマンドがあります。このコマンドは `cargo build` と全く同じように動作しますが、基本となる Rust コンパイラである `rustc` にオプションを渡すことができます。`rustc` にはリンカに引数を渡す `-C link-arg` フラグがあります。新しいビルドコマンドは次のようになります:
 
-```
+```bash
 cargo rustc -- -C link-arg=-nostartfiles
 ```
 
-Now our crate builds as a freestanding executable on Linux!
+これで crate を Linux 上で独立した実行ファイルとしてビルドできます！
 
-We didn't need to specify the name of our entry point function explicitly since the linker looks for a function with the name `_start` by default.
+リンカはデフォルトで `_start` という名前の関数を探すので、エントリポイントとなる関数の名前を明示的に指定する必要はありません。
 
 #### Windows
 
