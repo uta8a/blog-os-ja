@@ -23,28 +23,27 @@ x86 には、"Basic Input/Output System"(いわゆる **[BIOS]**)とより新し
 
 現在、このブログでは BIOS のみをサポートしていますが、UEFI のサポートも予定されています。もし UEFI のサポートを手伝っていただけるのであれば、[GitHub issue] をご覧になってください。
 
-[GitHub issue]: (https://github.com/phil-opp/blog_os/issues/349)
+[GitHub issue]: https://github.com/phil-opp/blog_os/issues/349
 
 ### BIOS Boot
 
-Almost all x86 systems have support for BIOS booting, including newer UEFI-based machines that use an emulated BIOS. This is great, because you can use the same boot logic across all machines from the last centuries. But this wide compatibility is at the same time the biggest disadvantage of BIOS booting, because it means that the CPU is put into a 16-bit compatibility mode called [real mode] before booting so that archaic bootloaders from the 1980s would still work.
+ほとんどすべての x86 システムが BIOS ブートをサポートしています。これにはエミュレートされた BIOS を使用する新しい UEFI ベースのマシンも含まれます。これは過去のすべてのマシンで同じブートロジックを使用できるため非常に便利です。しかし、この広範な互換性は同時に BIOS ブートの最大の欠点でもあります。なぜなら、1980年代の古いブートローダーでも動作できるように、ブート前に CPU が[リアルモード][real mode]と呼ばれる 16-bit 互換モードに設定されるからです。
 
-But let's start from the beginning:
+最初から説明してきましょう:
 
-When you turn on a computer, it loads the BIOS from some special flash memory located on the motherboard. The BIOS runs self test and initialization routines of the hardware, then it looks for bootable disks. If it finds one, the control is transferred to its _bootloader_, which is a 512-byte portion of executable code stored at the disk's beginning. Most bootloaders are larger than 512 bytes, so bootloaders are commonly split into a small first stage, which fits into 512 bytes, and a second stage, which is subsequently loaded by the first stage.
+コンピュータの電源を入れると、マザーボードにある特殊なフラッシュメモリから BIOS がロードされます。BIOS はハードウェアのセルフテストと初期化ルーチンを実行し、ブート可能なディスクを探します。見つかった場合、ディスクに格納されている実行可能コードの先頭 512 バイトにあるブートローダに制御が渡されます。ほとんどのブートローダは512バイトよりも大きいので、一般にブートローダは512バイトに収まる小さな第一段階とその後第一段階によって呼び出される第二段階に分割されます。
 
-The bootloader has to determine the location of the kernel image on the disk and load it into memory. It also needs to switch the CPU from the 16-bit [real mode] first to the 32-bit [protected mode], and then to the 64-bit [long mode], where 64-bit registers and the complete main memory are available. Its third job is to query certain information (such as a memory map) from the BIOS and pass it to the OS kernel.
+ブートローダはディスク上のカーネルイメージの場所を探し出し、それをメモリにロードする必要があります。また、CPU を 16-bit 互換の[リアルモード][real mode]から 32-bit 互換の[プロテクトモード][protected mode]に切り替えてから、64-bit レジスタと完全なメインメモリを使用できる 64-bit 互換の[ロングモード][long mode]に切り替えていく必要があります。3つ目の役割は、BIOS に特定の情報(メモリマップなど)を問い合わせ、それを OS カーネルに渡すことです。
 
-[real mode]: https://en.wikipedia.org/wiki/Real_mode
+[real mode]: https://ja.wikipedia.org/wiki/%E3%83%AA%E3%82%A2%E3%83%AB%E3%83%A2%E3%83%BC%E3%83%89
 [protected mode]: https://en.wikipedia.org/wiki/Protected_mode
 [long mode]: https://en.wikipedia.org/wiki/Long_mode
-[memory segmentation]: https://en.wikipedia.org/wiki/X86_memory_segmentation
 
-Writing a bootloader is a bit cumbersome as it requires assembly language and a lot of non insightful steps like “write this magic value to this processor register”. Therefore we don't cover bootloader creation in this post and instead provide a tool named [bootimage] that automatically prepends a bootloader to your kernel.
+ブートローダを書くのは、アセンブリ言語と「このマジックナンバーをこのプロセッサレジスタに書き込む」といったような本筋から外れた多くの工程を要するので、少し面倒です。そのため、この記事ではブートローダの作成については触れず、カーネルにブートローダを自動的に追加する [bootimage] というツールを利用します。
 
 [bootimage]: https://github.com/rust-osdev/bootimage
 
-If you are interested in building your own bootloader: Stay tuned, a set of posts on this topic is already planned! <!-- , check out our “_[Writing a Bootloader]_” posts, where we explain in detail how a bootloader is built. -->
+ブートローダを自分で作成することに興味のある方へ: そのためのブログシリーズがすでに計画されています。ご期待下さい！ <!-- , check out our “_[Writing a Bootloader]_” posts, where we explain in detail how a bootloader is built. -->
 
 #### The Multiboot Standard
 To avoid that every operating system implements its own bootloader, which is only compatible with a single OS, the [Free Software Foundation] created an open bootloader standard called [Multiboot] in 1995. The standard defines an interface between the bootloader and operating system, so that any Multiboot compliant bootloader can load any Multiboot compliant operating system. The reference implementation is [GNU GRUB], which is the most popular bootloader for Linux systems.
