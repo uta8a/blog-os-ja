@@ -9,20 +9,24 @@
 [GitHub]: https://github.com/phil-opp/blog_os
 [post branch]: https://github.com/phil-opp/blog_os/tree/post-02
 
-## The Boot Process
-When you turn on a computer, it begins executing firmware code that is stored in motherboard [ROM]. This code performs a [power-on self-test], detects available RAM, and pre-initializes the CPU and hardware. Afterwards it looks for a bootable disk and starts booting the operating system kernel.
+## 起動プロセス
+
+コンピュータを起動すると、マザーボードの [ROM] に記録されているファームウェアコードの実行が開始されます。このコードは [パワーオンセルフテスト][power-on self-test] (POST)を実行し、利用可能な RAM を検出し、CPU とハードウェアを事前に初期化します。その後、ブート可能なディスクを検出し OS カーネルのぶーとを開始します。
 
 [ROM]: https://en.wikipedia.org/wiki/Read-only_memory
 [power-on self-test]: https://en.wikipedia.org/wiki/Power-on_self-test
 
-On x86, there are two firmware standards: the “Basic Input/Output System“ (**[BIOS]**) and the newer “Unified Extensible Firmware Interface” (**[UEFI]**). The BIOS standard is old and outdated, but simple and well-supported on any x86 machine since the 1980s. UEFI, in contrast, is more modern and has much more features, but is more complex to set up (at least in my opinion).
+x86 には、"Basic Input/Output System"(いわゆる **[BIOS]**)とより新しい"Unified Extensible Firmware Interface"(いわゆる **[UEFI]**)の2つのファームウェア標準があります。BIOS は古く時代遅れになっていますが、シンプルで1980年以降のどの x86 マシンでもサポートされています。一方、UEFI はより現代的で多くの機能を備えていますが、セットアップがより複雑です(少なくとも私から見ると)。
 
 [BIOS]: https://en.wikipedia.org/wiki/BIOS
 [UEFI]: https://en.wikipedia.org/wiki/Unified_Extensible_Firmware_Interface
 
-Currently, we only provide BIOS support, but support for UEFI is planned, too. If you'd like to help us with this, check out the [Github issue](https://github.com/phil-opp/blog_os/issues/349).
+現在、このブログでは BIOS のみをサポートしていますが、UEFI のサポートも予定されています。もし UEFI のサポートを手伝っていただけるのであれば、[GitHub issue] をご覧になってください。
+
+[GitHub issue]: (https://github.com/phil-opp/blog_os/issues/349)
 
 ### BIOS Boot
+
 Almost all x86 systems have support for BIOS booting, including newer UEFI-based machines that use an emulated BIOS. This is great, because you can use the same boot logic across all machines from the last centuries. But this wide compatibility is at the same time the biggest disadvantage of BIOS booting, because it means that the CPU is put into a 16-bit compatibility mode called [real mode] before booting so that archaic bootloaders from the 1980s would still work.
 
 But let's start from the beginning:
