@@ -8,7 +8,7 @@
 
 このブログの内容は [GitHub] 上で公開・開発されています。何か問題や質問などがあれば issue をたててください (訳注: リンクは原文(英語)のものになります)。この記事の完全なソースコードは[`post-01` ブランチ][post branch]にあります。
 
-[GitHub ]: https://github.com/phil-opp/blog_os
+[GitHub]: https://github.com/phil-opp/blog_os
 [post branch]: https://github.com/phil-opp/blog_os/tree/post-01
 
 <!-- toc -->
