@@ -71,7 +71,9 @@ x86 には、"Basic Input/Output System"(いわゆる **[BIOS]**)とより新し
 
 ### UEFI
 
-(We don't provide UEFI support at the moment, but we would love to! If you'd like to help, please tell us in the [Github issue](https://github.com/phil-opp/blog_os/issues/349).)
+(現時点では UEFI をサポートしていませんが、ぜひやりたいと思っています！もしお手伝い頂ける場合は、[GitHub issue]にてお知らせください。)
+
+[GitHub issue]: (https://github.com/phil-opp/blog_os/issues/349)
 
 ## A Minimal Kernel
 Now that we roughly know how a computer boots, it's time to create our own minimal kernel. Our goal is to create a disk image that prints a “Hello World!” to the screen when booted. For that we build upon the [freestanding Rust binary] from the previous post.
