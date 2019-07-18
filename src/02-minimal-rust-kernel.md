@@ -2,7 +2,7 @@
 
 この記事では、x86 アーキテクチャ用の小さな 64-bit カーネルを Rust でつくります。一つ前の記事の ["freestanding Rust binary"] をもとに、ブート可能なディスクイメージを作成し、画面に何か文字を出力します。
 
-["freestanding Rust binary"]: ./01-freestanding-rust-binary.html
+["freestanding Rust binary"]: ./01-freestanding-rust-binary.md
 
 このブログの内容は [GitHub] 上で公開・開発されています。何か問題や質問などがあれば issue をたててください (訳注: リンクは原文(英語)のものになります)。この記事の完全なソースコードは [`post-01` ブランチ][post branch]にあります。
 
@@ -75,10 +75,13 @@ x86 には、"Basic Input/Output System"(いわゆる **[BIOS]**)とより新し
 
 [GitHub issue]: (https://github.com/phil-opp/blog_os/issues/349)
 
-## A Minimal Kernel
-Now that we roughly know how a computer boots, it's time to create our own minimal kernel. Our goal is to create a disk image that prints a “Hello World!” to the screen when booted. For that we build upon the [freestanding Rust binary] from the previous post.
+## 最小限のカーネル
 
-As you may remember, we built the freestanding binary through `cargo`, but depending on the operating system we needed different entry point names and compile flags. That's because `cargo` builds for the _host system_ by default, i.e. the system you're running on. This isn't something we want for our kernel, because a kernel that runs on top of e.g. Windows does not make much sense. Instead, we want to compile for a clearly defined _target system_.
+コンピュータがどのように起動するかはわかったので、次はいよいよ最小限のカーネルを作成していきます。ここでの目標は、起動時に画面に「Hello World!」を出力するディスクイメージを作成することです。一つ前の記事である ["freestanding Rust binary"] を前提として進めていきます。
+
+["freestanding Rust binary"]: ./01-freestanding-rust-binary.md
+
+覚えているでしょうか、私達は `cargo` を使って独立したバイナリを作成しました。ですが、OS によって異なるエントリポイント名とコンパイルフラグが必要でした。これはデフォルトでは `cargo` がホストシステム(つまり、今あなたが実行しているシステム)用にビルドするためです。例えば Windows 上で動作するカーネルにはあまり意味がないので、この仕組みは私達が求めるものではありません。代わりに、明確に定義されたターゲットシステム用にコンパイルします。
 
 ### Installing Rust Nightly
 Rust has three release channels: _stable_, _beta_, and _nightly_. The Rust Book explains the difference between these channels really well, so take a minute and [check it out](https://doc.rust-lang.org/book/appendix-07-nightly-rust.html#choo-choo-release-channels-and-riding-the-trains). For building an operating system we will need some experimental features that are only available on the nightly channel, so we need to install a nightly version of Rust.
