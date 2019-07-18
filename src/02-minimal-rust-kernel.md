@@ -25,7 +25,7 @@ x86 には、"Basic Input/Output System"(いわゆる **[BIOS]**)とより新し
 
 [GitHub issue]: https://github.com/phil-opp/blog_os/issues/349
 
-### BIOS Boot
+### BIOS の起動
 
 ほとんどすべての x86 システムが BIOS ブートをサポートしています。これにはエミュレートされた BIOS を使用する新しい UEFI ベースのマシンも含まれます。これは過去のすべてのマシンで同じブートロジックを使用できるため非常に便利です。しかし、この広範な互換性は同時に BIOS ブートの最大の欠点でもあります。なぜなら、1980年代の古いブートローダーでも動作できるように、ブート前に CPU が[リアルモード][real mode]と呼ばれる 16-bit 互換モードに設定されるからです。
 
@@ -45,26 +45,27 @@ x86 には、"Basic Input/Output System"(いわゆる **[BIOS]**)とより新し
 
 ブートローダを自分で作成することに興味のある方へ: そのためのブログシリーズがすでに計画されています。ご期待下さい！ <!-- , check out our “_[Writing a Bootloader]_” posts, where we explain in detail how a bootloader is built. -->
 
-#### The Multiboot Standard
-To avoid that every operating system implements its own bootloader, which is only compatible with a single OS, the [Free Software Foundation] created an open bootloader standard called [Multiboot] in 1995. The standard defines an interface between the bootloader and operating system, so that any Multiboot compliant bootloader can load any Multiboot compliant operating system. The reference implementation is [GNU GRUB], which is the most popular bootloader for Linux systems.
+#### マルチブート
+
+すべての OS が、単一の OS とのみ互換性がある独自のブートローダを実装するのを避けるために、[フリーソフトウェア財団][Free Software Foundation]は1995年に [Multiboot] と呼ばれるオープンなブートローダの規格を作成しました。この規格ではすべての Multiboot に対応するブートローダが同じく Multiboot に対応したすべての OS を読み込むことができるように、ブートローダと OS 間のインターフェースが定義されています。例えば [GNU GRUB] はこの実装例の一つであり、これは Linux システムで最も一般的なブートローダです。
 
 [Free Software Foundation]: https://en.wikipedia.org/wiki/Free_Software_Foundation
 [Multiboot]: https://wiki.osdev.org/Multiboot
 [GNU GRUB]: https://en.wikipedia.org/wiki/GNU_GRUB
 
-To make a kernel Multiboot compliant, one just needs to insert a so-called [Multiboot header] at the beginning of the kernel file. This makes it very easy to boot an OS in GRUB. However, GRUB and the Multiboot standard have some problems too:
+カーネルを Multiboot に対応させるには、カーネルファイルの先頭にいわゆる[Multiboot ヘッダ][Multiboot header]を追加するだけです。これにより、非常に簡単に GRUB で OS を起動させることができます。しかしながら、GRUB と Multiboot 規格にはいくつか問題もあります:
 
 [Multiboot header]: https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#OS-image-format
 
-- They support only the 32-bit protected mode. This means that you still have to do the CPU configuration to switch to the 64-bit long mode.
-- They are designed to make the bootloader simple instead of the kernel. For example, the kernel needs to be linked with an [adjusted default page size], because GRUB can't find the Multiboot header otherwise. Another example is that the [boot information], which is passed to the kernel, contains lots of architecture dependent structures instead of providing clean abstractions.
-- Both GRUB and the Multiboot standard are only sparsely documented.
-- GRUB needs to be installed on the host system to create a bootable disk image from the kernel file. This makes development on Windows or Mac more difficult.
+- 32-bit 互換のプロテクトモードのみをサポートします。64-bit 互換のロングモードに切り替えるには、CPU の設定を行う必要があります。
+- カーネルではなくブートローダを単純にするように設計されています。例えば、GRUB が Multiboot ヘッダを見つけられるように、カーネルは[調整されたデフォルトのページサイズ][adjusted default page size]でリンクされる必要があります。また、カーネルに渡される[ブート情報][boot information]がクリーンな抽象化をサポートする代わりに、アーキテクチャに依存した多くの構造を含むことです。
+- GRUB や Multiboot 規格についてはほとんど文書化されていません。
+- カーネルファイルからブート可能なディスクイメージを作成するには GRUB がホストシステムにインストールされている必要があります。これにより、Windows または Mac での開発がより難しくなります。
 
 [adjusted default page size]: https://wiki.osdev.org/Multiboot#Multiboot_2
 [boot information]: https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Boot-information-format
 
-Because of these drawbacks we decided to not use GRUB or the Multiboot standard. However, we plan to add Multiboot support to our [bootimage] tool, so that it's possible to load your kernel on a GRUB system too. If you're interested in writing a Multiboot compliant kernel, check out the [first edition] of this blog series.
+このような欠点があるため、今回は GRUB や Multiboot 規格は使用しないことにしました。しかしながら、[bootimage] に Multiboot のサポートを追加して、カーネルを GRUB 上で読み込めるようにする予定です。もし Multiboot 準拠のカーネルにご興味があれば、このブログシリーズの[第1版][first edition]を調べてみてください。
 
 [first edition]: ./first-edition/_index.md
 
