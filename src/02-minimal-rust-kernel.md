@@ -1,5 +1,9 @@
 # A Minimal Rust Kernel
 
+**この記事は "Writing an OS in Rust" の翻訳版です。オリジナルは[こちら][original]になります。**
+
+[original]: https://os.phil-opp.com/
+
 この記事では、x86 アーキテクチャ用の小さな 64-bit カーネルを Rust でつくります。一つ前の記事の ["freestanding Rust binary"] をもとに、ブート可能なディスクイメージを作成し、画面に何か文字を出力します。
 
 ["freestanding Rust binary"]: ./01-freestanding-rust-binary.md
@@ -83,14 +87,16 @@ x86 には、"Basic Input/Output System"(いわゆる **[BIOS]**)とより新し
 
 覚えているでしょうか、私達は `cargo` を使って独立したバイナリを作成しました。ですが、OS によって異なるエントリポイント名とコンパイルフラグが必要でした。これはデフォルトでは `cargo` がホストシステム(つまり、今あなたが実行しているシステム)用にビルドするためです。例えば Windows 上で動作するカーネルにはあまり意味がないので、この仕組みは私達が求めるものではありません。代わりに、明確に定義されたターゲットシステム用にコンパイルします。
 
-### Installing Rust Nightly
-Rust has three release channels: _stable_, _beta_, and _nightly_. The Rust Book explains the difference between these channels really well, so take a minute and [check it out](https://doc.rust-lang.org/book/appendix-07-nightly-rust.html#choo-choo-release-channels-and-riding-the-trains). For building an operating system we will need some experimental features that are only available on the nightly channel, so we need to install a nightly version of Rust.
+### Nightly チャンネルの Rust をインストールする
 
-To manage Rust installations I highly recommend [rustup]. It allows you to install nightly, beta, and stable compilers side-by-side and makes it easy to update them. With rustup you can use a nightly compiler for the current directory by running `rustup override add nightly`. Alternatively, you can add a file called `rust-toolchain` with the content `nightly` to the project's root directory. You can check that you have a nightly version installed by running `rustc --version`: The version number should contain `-nightly` at the end.
+Rust には3つのリリースチャンネルがあります: _stable_、_beta_、そして _nightly_ です。[TRPL] はこれらのチャンネルの違いを詳しく説明しているので、少し時間をとってチェックしてみてください。OS をつくるためには、nightly チャンネルでしか利用できない実験的な機能が必要になるので、Rust の nightly バージョンをインストールする必要があります。
 
+Rust のバージョンを管理するために [rustup] を使うことを強くおすすめします。stable や beta、nightly バージョンのコンパイラを同時に管理でき、アップデートも簡単です。rustup を使うと、`rustup override add nightly` を実行することで、カレントディレクトリで nightly バージョンのコンパイラを使用することができます。または、`nightly` と一緒に `rust-toolchain` と呼ばれるファイルをプロジェクトのルートディレクトリに追加することができます。nightly バージョンがインストールされているかどうかは `rustc --version` を実行することで分かります。うまくインストールされていれば、バージョン番号の最後に `-nightly` が含まれているはずです。
+
+[TRPL]: https://doc.rust-lang.org/book/appendix-07-nightly-rust.html#choo-choo-release-channels-and-riding-the-trains
 [rustup]: https://www.rustup.rs/
 
-The nightly compiler allows us to opt-in to various experimental features by using so-called _feature flags_ at the top of our file. For example, we could enable the experimental [`asm!` macro] for inline assembly by adding `#![feature(asm)]` to the top of our `main.rs`. Note that such experimental features are completely unstable, which means that future Rust versions might change or remove them without prior warning. For this reason we will only use them if absolutely necessary.
+nightly コンパイラでは、ファイルの先頭でいわゆる _feature flags_ を使用することでさまざまな実験的機能を利用することができます。例えば、`main.rs` の一番上の行に `#![feature(asm)]` を書くことでインラインアセンブリの実験的な [`asm!` macro] を利用できるようになります。このような実験的機能は非常に不安定で、将来の Rust バージョンで予告なしに変更あるいは削除される可能性があることに注意してください。なので、今回は絶対に必要なときのみこのような実験的機能を使うことにします。
 
 [`asm!` macro]: https://doc.rust-lang.org/nightly/unstable-book/language-features/asm.html
 
