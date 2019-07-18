@@ -7,8 +7,8 @@ function cargo_install() {
   local version=$2
 
   if command -v "$name" >/dev/null 2>&1; then
-    installed_version=$($name --version | sed -E 's/[a-zA-Z_-]+ v?//g')
     local installed_version
+    installed_version=$($name --version | sed -E 's/[a-zA-Z_-]+ v?//g')
     if [ "$installed_version" == "$version" ]; then
         echo "$name $version is already installed at $(command -v "$name")"
     else
