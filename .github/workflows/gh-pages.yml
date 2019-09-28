@@ -20,7 +20,7 @@ jobs:
           rustc -vV
 
       - name: Install mdbook
-        run: bash ci/install.sh
+        run: cargo install mdbook mdbook-linkcheck
 
       - name: Build
         run: mdbook build
