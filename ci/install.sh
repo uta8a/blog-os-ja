@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# for now, this file is unnecessary. But when we can use Actions with caches, this will be needed again.
+
 set -ex
 
 function cargo_install() {
