@@ -1,4 +1,6 @@
-on: [push]
+on:
+  schedule:
+  - cron: 0 12 * * *
 
 jobs:
   check_commit_hash:
