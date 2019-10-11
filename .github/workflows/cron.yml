@@ -1,0 +1,14 @@
+on: [push]
+
+jobs:
+  check_commit_hash:
+    name: Check commit hash
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Clone blog_os
+        run: git clone https://github.com/phil-opp/blog_os.git
+
+      - name: Check commit hash
+        run: diff <(cd blog_os && git log --pretty=%H -- blog/content/second-edition/posts/01-freestanding-rust-binary/index.md | head -1) <(cat hash/01-freestanding-rust-binary)
