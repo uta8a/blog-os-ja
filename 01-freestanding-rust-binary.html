@@ -1,0 +1,496 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>A Freestanding Rust Binary - Writing an OS in Rust</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li><a href="intro.html"><strong aria-hidden="true">1.</strong> はじめに</a></li><li><a href="01-freestanding-rust-binary.html" class="active"><strong aria-hidden="true">2.</strong> A Freestanding Rust Binary</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Writing an OS in Rust</h1>
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#a-freestanding-rust-binary" id="a-freestanding-rust-binary">A Freestanding Rust Binary</a></h1>
+<p>私達自身のオペレーティングシステム(以下、OS)カーネルを作っていく最初のステップは標準ライブラリとリンクしない Rust の実行可能ファイルをつくることです。これにより、基盤となる OS がない<a href="https://en.wikipedia.org/wiki/Bare_machine">ベアメタル</a>上で Rust のコードを実行することができるようになります。</p>
+<!-- more -->
+<p>このブログの内容は <a href="https://github.com/phil-opp/blog_os">GitHub</a> 上で公開・開発されています。何か問題や質問などがあれば issue をたててください (訳注: リンクは原文(英語)のものになります)。この記事の完全なソースコードは<a href="https://github.com/phil-opp/blog_os/tree/post-01"><code>post-01</code> ブランチ</a>にあります。</p>
+<!-- toc -->
+<h2><a class="header" href="#導入" id="導入">導入</a></h2>
+<p>OS カーネルを書くためには、いかなる OS の機能にも依存しないコードが必要となります。つまり、スレッドやヒープメモリ、ネットワーク、乱数、標準出力、その他 OS による抽象化や特定のハードウェアを必要とする機能は使えません。私達は自分自身で OS とそのドライバを書こうとしているので、これは理にかなっています。</p>
+<p>これは <a href="https://doc.rust-lang.org/std/">Rust の標準ライブラリ</a>をほとんど使えないということを意味しますが、それでも私達が使うことのできる Rust の機能はたくさんあります。例えば、<a href="https://doc.rust-lang.org/book/ch13-02-iterators.html">イテレータ</a>や<a href="https://doc.rust-lang.org/book/ch13-01-closures.html">クロージャ</a>、<a href="https://doc.rust-lang.org/book/ch06-00-enums.html">パターンマッチング</a>、 <a href="https://doc.rust-lang.org/core/option/"><code>Option</code></a> や <a href="https://doc.rust-lang.org/core/result/"><code>Result</code></a> 型に<a href="https://doc.rust-lang.org/core/macro.write.html">文字列フォーマット</a>、そしてもちろん<a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html">所有権システム</a>を使うことができます。これらの機能により、<a href="https://www.nayuki.io/page/undefined-behavior-in-c-and-cplusplus-programs">未定義動作</a>や<a href="https://tonyarcieri.com/it-s-time-for-a-memory-safety-intervention">メモリ安全性</a>を気にせずに、高い水準で表現力豊かにカーネルを書くことができます。</p>
+<p>Rust で OS カーネルを書くには、基盤となる OS なしで動く実行環境をつくる必要があります。そのような実行環境はフリースタンディング環境やベアメタルのように呼ばれます。</p>
+<p>この記事では、フリースタンディングな Rust のバイナリをつくるために必要なステップを紹介し、なぜそれが必要なのかを説明します。もし最小限の説明だけを読みたいのであれば <strong><a href="#%E6%A6%82%E8%A6%81">概要</a></strong> まで飛ばしてください。</p>
+<h2><a class="header" href="#標準ライブラリの無効化" id="標準ライブラリの無効化">標準ライブラリの無効化</a></h2>
+<p>デフォルトでは、全ての Rust クレートは<a href="https://doc.rust-lang.org/std/">標準ライブラリ</a>にリンクされています。標準ライブラリはスレッドやファイル、ネットワークのような OS の機能に依存しています。また OS と密接な関係にある C の標準ライブラリ(<code>libc</code>)にも依存しています。私達の目的は OS を書くことなので、 OS 依存のライブラリを使うことはできません。そのため、 <a href="https://doc.rust-lang.org/1.30.0/book/first-edition/using-rust-without-the-standard-library.html"><code>no_std</code> attribute</a> を使って標準ライブラリが自動的にリンクされるのを無効にします。</p>
+<p>新しい Cargo プロジェクトをつくるところから始めましょう。もっとも簡単なやり方はコマンドラインで以下を実行することです。</p>
+<pre><code class="language-bash">cargo new blog_os --bin --edition 2018
+</code></pre>
+<p>プロジェクト名を <code>blog_os</code> としましたが、もちろんお好きな名前をつけていただいても大丈夫です。<code>--bin</code>フラグは実行可能バイナリを作成することを、 <code>--edition 2018</code> は<a href="https://rust-lang-nursery.github.io/edition-guide/rust-2018/index.html">2018エディション</a>を使用することを明示的に指定します。コマンドを実行すると、 Cargoは以下のようなディレクトリ構造を作成します:</p>
+<pre><code class="language-bash">blog_os
+├── Cargo.toml
+└── src
+    └── main.rs
+</code></pre>
+<p><code>Cargo.toml</code> にはクレートの名前や作者名、<a href="http://semver.org/">セマンティックバージョニング</a>に基づくバージョンナンバーや依存関係などが書かれています。<code>src/main.rs</code> には私達のクレートのルートモジュールと <code>main</code> 関数が含まれています。<code>cargo build</code> コマンドでこのクレートをコンパイルして、 <code>target/debug</code> ディレクトリの中にあるコンパイルされた <code>blog_os</code> バイナリを実行することができます。</p>
+<h3><a class="header" href="#no_std-attribute" id="no_std-attribute"><code>no_std</code> Attribute</a></h3>
+<p>今のところ私達のクレートは暗黙のうちに標準ライブラリをリンクしています。<a href="https://doc.rust-lang.org/1.30.0/book/first-edition/using-rust-without-the-standard-library.html"><code>no_std</code> attribute</a>を追加してこれを無効にしてみましょう:</p>
+<pre><pre class="playpen"><code class="language-rust">// main.rs
+
+#![no_std]
+
+fn main() {
+    println!(&quot;Hello, world!&quot;);
+}
+</code></pre></pre>
+<p>(<code>cargo build</code> を実行して)ビルドしようとすると、次のようなエラーが発生します:</p>
+<pre><code class="language-bash">error: cannot find macro `println!` in this scope
+ --&gt; src/main.rs:4:5
+  |
+4 |     println!(&quot;Hello, world!&quot;);
+  |     ^^^^^^^
+</code></pre>
+<p>これは <a href="https://doc.rust-lang.org/std/macro.println.html"><code>println</code> マクロ</a>が標準ライブラリに含まれているためです。<code>no_std</code> で標準ライブラリを無効にしたので、何かをプリントすることはできなくなりました。<code>println</code> は標準出力に書き込むのでこれは理にかなっています。<a href="https://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29">標準出力</a>は OS によって提供される特別なファイル記述子であるためです。</p>
+<p>では、 <code>println</code> を削除し <code>main</code> 関数を空にしてもう一度ビルドしてみましょう:</p>
+<pre><pre class="playpen"><code class="language-rust">// main.rs
+
+#![no_std]
+
+fn main() {}
+</code></pre></pre>
+<pre><code class="language-bash">&gt; cargo build
+error: `#[panic_handler]` function required, but not found
+error: language item required, but not found: `eh_personality`
+</code></pre>
+<p>この状態では <code>#[panic_handler]</code> 関数と <code>language item</code> がないというエラーが発生します。</p>
+<h2><a class="header" href="#panic-の実装" id="panic-の実装">Panic の実装</a></h2>
+<p><code>panic_handler</code> attribute は<a href="https://doc.rust-lang.org/stable/book/ch09-01-unrecoverable-errors-with-panic.html">パニック</a>が発生したときにコンパイラが呼び出す関数を定義します。標準ライブラリには独自のパニックハンドラー関数がありますが、 <code>no_std</code> 環境では私達の手でそれを実装する必要があります:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// in main.rs
+
+use core::panic::PanicInfo;
+
+/// この関数はパニック時に呼ばれる
+#[panic_handler]
+fn panic(_info: &amp;PanicInfo) -&gt; ! {
+    loop {}
+}
+#}</code></pre></pre>
+<p><a href="https://doc.rust-lang.org/nightly/core/panic/struct.PanicInfo.html"><code>PanicInfo</code> パラメータ</a>には、パニックが発生したファイルと行、およびオプションでパニックメッセージが含まれます。この関数は戻り値を取るべきではないので、]&quot;never&quot; 型(<code>!</code>)]<a href="https://doc.rust-lang.org/nightly/std/primitive.never.html">“never” type</a>を返すことで<a href="https://doc.rust-lang.org/1.30.0/book/first-edition/functions.html#diverging-functions">発散する関数</a>となります。今のところこの関数でできることは多くないので、無限にループするだけです。</p>
+<h2><a class="header" href="#eh_personality-language-item" id="eh_personality-language-item"><code>eh_personality</code> Language Item</a></h2>
+<p>language item はコンパイラによって内部的に必要とされる特別な関数や型です。例えば、<a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html"><code>Copy</code></a> トレイトはどの型が<a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">コピーセマンティクス</a>を持っているかをコンパイラに伝える language item です。<a href="https://github.com/rust-lang/rust/blob/485397e49a02a3b7ff77c17e4a3f16c653925cb3/src/libcore/marker.rs#L296-L299">実装</a>を見てみると、 language item として定義されている特別な <code>#[lang = &quot;copy&quot;]</code> attribute を持っていることが分かります。</p>
+<p>独自に language item を実装することもできますが、これは最終手段として行われるべきでしょう。というのも、language item は非常に不安定な実装であり型検査も行われないからです(なので、コンパイラは関数が正しい引数の型を取っているかさえ検査しません)。幸い、上記の language item のエラーを修正するためのより安定した方法があります。</p>
+<p><code>eh_personality</code> language item は<a href="http://www.bogotobogo.com/cplusplus/stackunwinding.php">スタックアンワインド</a> を実装するための関数を定義します。デフォルトでは、パニックが起きた場合には Rust はアンワインドを使用してすべてのスタックにある変数のデストラクタを実行します。これにより、使用されている全てのメモリが確実に解放され、親スレッドはパニックを検知して実行を継続できます。しかしアンワインドは複雑であり、いくつかの OS 特有のライブラリ(例えば、Linux では <a href="http://www.nongnu.org/libunwind/">libunwind</a> 、Windows では<a href="https://msdn.microsoft.com/en-us/library/windows/desktop/ms680657(v=vs.85).aspx">構造化例外</a>)を必要とするので、私達の OS には使いたくありません。</p>
+<h3><a class="header" href="#アンワインドの無効化" id="アンワインドの無効化">アンワインドの無効化</a></h3>
+<p>他にもアンワインドが望ましくないユースケースがあります。そのため、Rust には代わりに<a href="https://github.com/rust-lang/rust/pull/32900">パニックで中止する</a>オプションがあります。これにより、アンワインドのシンボル情報の生成が無効になり、バイナリサイズが大幅に削減されます。アンワインドを無効にする方法は複数あります。もっとも簡単な方法は、<code>Cargo.toml</code> に次の行を追加することです:</p>
+<pre><code class="language-toml">[profile.dev]
+panic = &quot;abort&quot;
+
+[profile.release]
+panic = &quot;abort&quot;
+</code></pre>
+<p>これは dev プロファイル(<code>cargo build</code> に使用される)と release プロファイル(<code>cargo build --release</code> に使用される)の両方でパニックで中止するようにするための設定です。これで <code>eh_personality</code> language item が不要になりました。</p>
+<p>これで上の2つのエラーを修正しました。しかし、コンパイルしようとすると別のエラーが発生します:</p>
+<pre><code class="language-bash">&gt; cargo build
+error: requires `start` lang_item
+</code></pre>
+<p>私達のプログラムにはエントリポイントを定義する <code>start</code> language item がありません。</p>
+<h2><a class="header" href="#start-attribute" id="start-attribute"><code>start</code> attribute</a></h2>
+<p><code>main</code> 関数はプログラムを実行したときに最初に呼び出される関数であると思うかもしれません。しかし、ほとんどの言語には<a href="https://en.wikipedia.org/wiki/Runtime_system">ランタイムシステム</a>があり、これはガベージコレクション(Java など)やソフトウェアスレッド(Go のゴルーチン)などを処理します。ランタイムは自身を初期化する必要があるため、<code>main</code> 関数の前に呼び出す必要があります。これにはスタック領域の作成と正しいレジスタへの引数の配置が含まれます。</p>
+<p>標準ライブラリをリンクする一般的な Rust バイナリでは、<code>crt0</code> (&quot;C runtime zero&quot;)と呼ばれる C のランタイムライブラリで実行が開始され、C アプリケーションの環境が設定されます。その後 C ランタイムは、<code>start</code> language item で定義されている <a href="https://github.com/rust-lang/rust/blob/bb4d1491466d8239a7a5fd68bd605e3276e97afb/src/libstd/rt.rs#L32-L73">Rust ランタイムのエントリポイント</a>を呼び出します。Rust にはごくわずかなランタイムしかありません。これは、スタックオーバーフローを防ぐ設定やパニック時のバックトレースの表示など、いくつかの小さな処理を行います。最後に、ランタイムは <code>main</code> 関数を呼び出します。</p>
+<p>私達のフリースタンディングな実行可能ファイルは今のところ Rust ランタイムと <code>crt0</code> へアクセスできません。なので、私達は自身でエントリポイントを定義する必要があります。<code>start</code> language item を実装することは <code>crt0</code> を必要とするのでここではできません。代わりに <code>crt0</code> エントリポイントを直接上書きしなければなりません。</p>
+<h3><a class="header" href="#エントリポイントの上書き" id="エントリポイントの上書き">エントリポイントの上書き</a></h3>
+<p>Rust コンパイラに通常のエントリポイントを使いたくないことを伝えるために、<code>#![no_main]</code> attribute を追加します。</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#![no_std]
+#![no_main]
+
+#fn main() {
+use core::panic::PanicInfo;
+
+/// This function is called on panic.
+#[panic_handler]
+fn panic(_info: &amp;PanicInfo) -&gt; ! {
+    loop {}
+}
+#}</code></pre></pre>
+<p><code>main</code> 関数を削除したことに気付いたかもしれません。<code>main</code> 関数を呼び出す基盤となるランタイムなしには置いていても意味がないからです。代わりに、OS のエントリポイントを独自の <code>_start</code> 関数で上書きしていきます:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[no_mangle]
+pub extern &quot;C&quot; fn _start() -&gt; ! {
+    loop {}
+}
+#}</code></pre></pre>
+<p>Rust コンパイラが <code>_start</code> という名前の関数を実際に出力するように、<code>#[no_mangle]</code> attributeを用いて<a href="https://en.wikipedia.org/wiki/Name_mangling">名前修飾</a>を無効にします。この attribute がないと、コンパイラはすべての関数にユニークな名前をつけるために、 <code>_ZN3blog_os4_start7hb173fedf945531caE</code> のようなシンボルを生成します。次のステップでエントリポイントとなる関数の名前をリンカに伝えるため、この属性が必要となります。</p>
+<p>また、(指定されていない Rust の呼び出し規約の代わりに)この関数に <a href="https://en.wikipedia.org/wiki/Calling_convention">C の呼び出し規約</a>を使用するようコンパイラに伝えるために、関数を <code>extern &quot;C&quot;</code> として定義する必要があります。<code>_start</code>という名前をつける理由は、これがほとんどのシステムのデフォルトのエントリポイント名だからです。</p>
+<p>戻り値の型である <code>!</code> は関数が発散している、つまり値を返すことができないことを意味しています。エントリポイントはどの関数からも呼び出されず、OS またはブートローダから直接呼び出されるので、これは必須です。なので、値を返す代わりに、エントリポイントは例えば OS の <a href="https://en.wikipedia.org/wiki/Exit_(system_call)"><code>exit</code> システムコール</a>を呼び出します。今回はフリースタンディングなバイナリが返されたときマシンをシャットダウンするようにすると良いでしょう。今のところ、私達は無限ループを起こすことで要件を満たします。</p>
+<p><code>cargo build</code> を実行すると、見づらいリンカエラーが発生します。</p>
+<h2><a class="header" href="#リンカエラー" id="リンカエラー">リンカエラー</a></h2>
+<p>リンカは、生成されたコードを実行可能ファイルに紐付けるプログラムです。実行可能ファイルの形式は Linux や Windows、macOS でそれぞれ異なるため、各システムにはそれぞれ異なるエラーを発生させる独自のリンカがあります。エラーの根本的な原因は同じです。リンカのデフォルト設定では、プログラムが C ランタイムに依存していると仮定していますが、実際にはしていません。</p>
+<p>エラーを回避するためにはリンカに C ランタイムに依存しないことを伝える必要があります。これはリンカに一連の引数を渡すか、ベアメタルターゲット用にビルドすることで可能となります。</p>
+<h3><a class="header" href="#ベアメタルターゲット用にビルドする" id="ベアメタルターゲット用にビルドする">ベアメタルターゲット用にビルドする</a></h3>
+<p>デフォルトでは、Rust は現在のシステム環境に合った実行可能ファイルをビルドしようとします。例えば、<code>x86_64</code> で Windows を使用している場合、Rust は <code>x86_64</code> 用の <code>.exe</code> Windows 実行可能ファイルをビルドしようとします。このような環境は「ホスト」システムと呼ばれます。</p>
+<p>様々な環境を表現するために、Rust は <a href="https://clang.llvm.org/docs/CrossCompilation.html#target-triple"><em>target triple</em></a> という文字列を使います。<code>rustc --version --verbose</code> を実行すると、ホストシステムの target triple を確認できます:</p>
+<pre><code class="language-bash">rustc 1.35.0-nightly (474e7a648 2019-04-07)
+binary: rustc
+commit-hash: 474e7a6486758ea6fc761893b1a49cd9076fb0ab
+commit-date: 2019-04-07
+host: x86_64-unknown-linux-gnu
+release: 1.35.0-nightly
+LLVM version: 8.0
+</code></pre>
+<p>上記の出力は <code>x86_64</code> の Linux によるものです。<code>host</code> は <code>x86_64-unknown-linux-gnu</code> です。これには CPU アーキテクチャ(<code>x86_64</code>)、ベンダー(<code>unknown</code>)、OS(<code>Linux</code>)、そして <a href="https://en.wikipedia.org/wiki/Application_binary_interface">ABI</a> (<code>gnu</code>)が含まれています。</p>
+<p>ホストの triple 用にコンパイルすることで、Rust コンパイラとリンカは、デフォルトで C ランタイムを使用する Linux や Windows のような基盤となる OS があると想定し、それによってリンカエラーが発生します。なのでリンカエラーを回避するために、基盤となる OS を使用せずに異なる環境用にコンパイルします。</p>
+<p>このようなベアメタル環境の例としては、<code>thumbv7em-none-eabihf</code> target triple があります。これは、<a href="https://en.wikipedia.org/wiki/Embedded_system">組込みシステム</a>を表しています。詳細は省きますが、重要なのは <code>none</code> という文字列からわかるように、 この target triple に基盤となる OS がないことです。このターゲット用にコンパイルできるようにするには、 rustup にこれを追加する必要があります:</p>
+<pre><code class="language-bash">rustup target add thumbv7em-none-eabihf
+</code></pre>
+<p>これにより、この target triple 用の標準(およびコア)ライブラリのコピーがダウンロードされます。これで、このターゲット用にフリースタンディングな実行可能ファイルをビルドできます:</p>
+<pre><code class="language-bash">cargo build --target thumbv7em-none-eabihf
+</code></pre>
+<p><code>--target</code> 引数を渡すことで、ベアメタルターゲット用に実行可能ファイルを<a href="https://en.wikipedia.org/wiki/Cross_compiler">クロスコンパイル</a>します。このターゲットシステムには OS がないため、リンカは C ランタイムをリンクしようとせず、ビルドはリンカエラーなしで成功します。</p>
+<p>これが私達の OS カーネルを書くために使うアプローチです。<code>thumbv7em-none-eabihf</code> の代わりに、<code>x86_64</code> のベアメタル環境を表す<a href="https://doc.rust-lang.org/rustc/targets/custom.html">カスタムターゲット</a>を使用することもできます。詳細は次のセクションで説明します。</p>
+<h3><a class="header" href="#リンカへの引数" id="リンカへの引数">リンカへの引数</a></h3>
+<p>ベアメタルターゲット用にコンパイルする代わりに、特定の引数のセットをリンカにわたすことでリンカエラーを回避することもできます。これは私達がカーネルに使用するアプローチではありません。したがって、このセクションはオプションであり、選択肢を増やすために書かれています。表示するには以下の「リンカへの引数」をクリックしてください。</p>
+<details>
+<summary>リンカへの引数</summary>
+<p>このセクションでは、Linux、Windows、および macOS で発生するリンカエラーについてと、リンカに追加の引数を渡すことによってそれらを解決する方法を説明します。実行可能ファイルの形式とリンカは OS によって異なるため、システムごとに異なる引数のセットが必要です。</p>
+<h4><a class="header" href="#linux" id="linux">Linux</a></h4>
+<p>Linux では以下のようなエラーが発生します(抜粋):</p>
+<pre><code>error: linking with `cc` failed: exit code: 1
+  |
+  = note: &quot;cc&quot; […]
+  = note: /usr/lib/gcc/../x86_64-linux-gnu/Scrt1.o: In function `_start':
+          (.text+0x12): undefined reference to `__libc_csu_fini'
+          /usr/lib/gcc/../x86_64-linux-gnu/Scrt1.o: In function `_start':
+          (.text+0x19): undefined reference to `__libc_csu_init'
+          /usr/lib/gcc/../x86_64-linux-gnu/Scrt1.o: In function `_start':
+          (.text+0x25): undefined reference to `__libc_start_main'
+          collect2: error: ld returned 1 exit status
+</code></pre>
+<p>問題は、デフォルトで C ランタイムの起動ルーチンがリンカに含まれていることです。これは <code>_start</code> とも呼ばれます。<code>no_std</code> attribute により、C 標準ライブラリ <code>libc</code> のいくつかのシンボルが必要となります。なので、リンカはこれらの参照を解決できません。これを解決するために、リンカに <code>-nostartfiles</code> フラグを渡して、C の起動ルーチンをリンクしないようにします。</p>
+<p>Cargo を通してリンカの attribute を渡す方法の一つに、<code>cargo rustc</code> コマンドがあります。このコマンドは <code>cargo build</code> と全く同じように動作しますが、基本となる Rust コンパイラである <code>rustc</code> にオプションを渡すことができます。<code>rustc</code> にはリンカに引数を渡す <code>-C link-arg</code> フラグがあります。新しいビルドコマンドは次のようになります:</p>
+<pre><code class="language-bash">cargo rustc -- -C link-arg=-nostartfiles
+</code></pre>
+<p>これで crate を Linux 上で独立した実行ファイルとしてビルドできます！</p>
+<p>リンカはデフォルトで <code>_start</code> という名前の関数を探すので、エントリポイントとなる関数の名前を明示的に指定する必要はありません。</p>
+<h4><a class="header" href="#windows" id="windows">Windows</a></h4>
+<p>Windows では別のリンカエラーが発生します(抜粋):</p>
+<pre><code>error: linking with `link.exe` failed: exit code: 1561
+  |
+  = note: &quot;C:\\Program Files (x86)\\…\\link.exe&quot; […]
+  = note: LINK : fatal error LNK1561: entry point must be defined
+</code></pre>
+<p>&quot;entry point must be defined&quot; というエラーは、リンカがエントリポイントを見つけられていないことを意味します。Windows では、デフォルトのエントリポイント名は<a href="https://docs.microsoft.com/en-us/cpp/build/reference/entry-entry-point-symbol">使用するサブシステム</a>によって異なります。<code>CONSOLE</code> サブシステムの場合、リンカは <code>mainCRTStartup</code> という名前の関数を探し、<code>WINDOWS</code> サブシステムの場合は、<code>WinMainCRTStartup</code> という名前の関数を探します。デフォルトの動作を無効にし、代わりに <code>_start</code> 関数を探すようにリンカに指示するには、<code>/ENTRY</code> 引数をリンカに渡します:</p>
+<pre><code class="language-bash">cargo rustc -- -C link-arg=/ENTRY:_start
+</code></pre>
+<p>引数の形式が異なることから、Windows のリンカは Linux のリンカとは全く異なるプログラムであることが分かります。</p>
+<p>これにより、別のリンカエラーが発生します:</p>
+<pre><code>error: linking with `link.exe` failed: exit code: 1221
+  |
+  = note: &quot;C:\\Program Files (x86)\\…\\link.exe&quot; […]
+  = note: LINK : fatal error LNK1221: a subsystem can't be inferred and must be
+          defined
+</code></pre>
+<p>このエラーは Windows での実行可能ファイルが異なる <a href="https://docs.microsoft.com/en-us/cpp/build/reference/entry-entry-point-symbol">subsystems</a> を使用することができるために発生します。通常のプログラムでは、エントリポイント名に基づいて推定されます。エントリポイントが <code>main</code> という名前の場合は <code>CONSOLE</code> サブシステムが使用され、エントリポイント名が <code>WinMain</code> である場合には <code>WINDOWS</code> サブシステムが使用されます。<code>_start</code> 関数は別の名前を持っているので、サブシステムを明示的に指定する必要があります:</p>
+<p>This error occurs because Windows executables can use different <a href="https://docs.microsoft.com/en-us/cpp/build/reference/entry-entry-point-symbol">subsystems</a>. For normal programs they are inferred depending on the entry point name: If the entry point is named <code>main</code>, the <code>CONSOLE</code> subsystem is used, and if the entry point is named <code>WinMain</code>, the <code>WINDOWS</code> subsystem is used. Since our <code>_start</code> function has a different name, we need to specify the subsystem explicitly:</p>
+<pre><code class="language-bash">cargo rustc -- -C link-args=&quot;/ENTRY:_start /SUBSYSTEM:console&quot;
+</code></pre>
+<p>ここでは <code>CONSOLE</code> サブシステムを使用しますが、<code>WINDOWS</code> サブシステムを使うこともできます。<code>-C link-arg</code> を複数渡す代わりに、スペースで区切られたリストを引数として取る <code>-C link-args</code> を渡します。</p>
+<p>このコマンドで、実行可能ファイルが Windows 上で正しくビルドされます。</p>
+<h4><a class="header" href="#macos" id="macos">macOS</a></h4>
+<p>macOS では次のようなリンカエラーが発生します(抜粋):</p>
+<pre><code>error: linking with `cc` failed: exit code: 1
+  |
+  = note: &quot;cc&quot; […]
+  = note: ld: entry point (_main) undefined. for architecture x86_64
+          clang: error: linker command failed with exit code 1 […]
+</code></pre>
+<p>このエラーメッセージは、リンカがデフォルト名が <code>main</code> (いくつかの理由で、macOS 上ではすべての関数の前には <code>_</code> が付きます) であるエントリポイントとなる関数を見つけられないことを示しています。<code>_start</code> 関数をエントリポイントとして設定するには、<code>-e</code> というリンカ引数を渡します:</p>
+<pre><code class="language-bash">cargo rustc -- -C link-args=&quot;-e __start&quot;
+</code></pre>
+<p><code>-e</code> というフラグでエントリポイントとなる関数の名前を指定できます。macOS 上では全ての関数には <code>_</code> というプレフィックスが追加されるので、<code>_start</code> ではなく <code>__start</code> にエントリポイントを設定する必要があります。</p>
+<p>これにより、次のようなリンカエラーが発生します:</p>
+<pre><code>error: linking with `cc` failed: exit code: 1
+  |
+  = note: &quot;cc&quot; […]
+  = note: ld: dynamic main executables must link with libSystem.dylib
+          for architecture x86_64
+          clang: error: linker command failed with exit code 1 […]
+</code></pre>
+<p>macOS は<a href="https://developer.apple.com/library/content/qa/qa1118/_index.html">正式には静的にリンクされたバイナリをサポートしておらず</a>、プログラムはデフォルトで <code>libSystem</code> ライブラリにリンクされる必要があります。これを無効にして静的バイナリをリンクするには、<code>-static</code> フラグをリンカに渡します:</p>
+<pre><code class="language-bash">cargo rustc -- -C link-args=&quot;-e __start -static&quot;
+</code></pre>
+<p>これでもまだ十分ではありません、3つ目のリンカエラーが発生します:</p>
+<pre><code>error: linking with `cc` failed: exit code: 1
+  |
+  = note: &quot;cc&quot; […]
+  = note: ld: library not found for -lcrt0.o
+          clang: error: linker command failed with exit code 1 […]
+</code></pre>
+<p>このエラーは、macOS 上のプログラムがデフォルトで <code>crt0</code> (&quot;C runtime zero&quot;) にリンクされるために発生します。これは Linux 上で起きたエラーと似ており、<code>-nostartfiles</code> というリンカ引数を追加することで解決できます:</p>
+<pre><code class="language-bash">cargo rustc -- -C link-args=&quot;-e __start -static -nostartfiles&quot;
+</code></pre>
+<p>これで 私達のプログラムを macOS 上で正しくビルドできます。</p>
+<h4><a class="header" href="#ビルドコマンドの統一" id="ビルドコマンドの統一">ビルドコマンドの統一</a></h4>
+<p>現時点では、ホストプラットフォームによって異なるビルドコマンドを使っていますが、これは理想的ではありません。これを回避するために、プラットフォーム固有の引数を含む <code>.cargo/config</code> というファイルを作成します:</p>
+<pre><code class="language-toml"># in .cargo/config
+
+[target.'cfg(target_os = &quot;linux&quot;)']
+rustflags = [&quot;-C&quot;, &quot;link-arg=-nostartfiles&quot;]
+
+[target.'cfg(target_os = &quot;windows&quot;)']
+rustflags = [&quot;-C&quot;, &quot;link-args=/ENTRY:_start /SUBSYSTEM:console&quot;]
+
+[target.'cfg(target_os = &quot;macos&quot;)']
+rustflags = [&quot;-C&quot;, &quot;link-args=-e __start -static -nostartfiles&quot;]
+</code></pre>
+<p><code>rustflags</code> には <code>rustc</code> を呼び出すたびに自動的に追加される引数が含まれています。<code>.cargo/config</code> についての詳細は<a href="(https://doc.rust-lang.org/cargo/reference/config.html)">公式のドキュメント</a>を確認してください。</p>
+<p>これで私達のプログラムは3つすべてのプラットフォーム上で、シンプルに <code>cargo build</code> のみでビルドすることができるようになります。</p>
+<h4><a class="header" href="#私達はこれをすべきですか" id="私達はこれをすべきですか">私達はこれをすべきですか？</a></h4>
+<p>これらの手順で Linux、Windows および macOS 用の独立した実行可能ファイルをビルドすることはできますが、おそらく良い方法ではありません。その理由は、例えば <code>_start</code> 関数が呼ばれたときにスタックが初期化されるなど、まだ色々なことを前提としているからです。C ランタイムがなければ、これらの要件のうちいくつかが満たされない可能性があり、セグメンテーション違反(segfault)などによってプログラムが失敗する可能性があります。</p>
+<p>もし既存の OS 上で動作する最小限のバイナリを作成したいなら、<code>libc</code> を使って <code>#[start]</code> attribute を<a href="(https://doc.rust-lang.org/1.16.0/book/no-stdlib.html)">ここ</a>で説明するとおりに設定するのが良いでしょう。</p>
+</details>
+<h2><a class="header" href="#概要" id="概要">概要</a></h2>
+<p>最小限の独立した Rust バイナリは次のようになります:</p>
+<p><code>src/main.rs</code>:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#![no_std] // Rust の標準ライブラリにリンクしない
+#![no_main] // 全ての Rust レベルのエントリポイントを無効にする
+
+#fn main() {
+use core::panic::PanicInfo;
+
+#[no_mangle] // この関数の名前修飾をしない
+pub extern &quot;C&quot; fn _start() -&gt; ! {
+    // リンカはデフォルトで `_start` という名前の関数を探すので、
+    // この関数がエントリポイントとなる
+    loop {}
+}
+
+/// この関数はパニック時に呼ばれる
+#[panic_handler]
+fn panic(_info: &amp;PanicInfo) -&gt; ! {
+    loop {}
+}
+#}</code></pre></pre>
+<p><code>Cargo.toml</code>:</p>
+<pre><code class="language-toml">[package]
+name = &quot;crate_name&quot;
+version = &quot;0.1.0&quot;
+authors = [&quot;Author Name &lt;author@example.com&gt;&quot;]
+
+# the profile used for `cargo build`
+[profile.dev]
+panic = &quot;abort&quot; # disable stack unwinding on panic
+
+# the profile used for `cargo build --release`
+[profile.release]
+panic = &quot;abort&quot; # disable stack unwinding on panic
+</code></pre>
+<p>このバイナリをビルドするために、<code>thumbv7em-none-eabihf</code> のようなベアメタルターゲット用にコンパイルする必要があります:</p>
+<pre><code class="language-bash">cargo build --target thumbv7em-none-eabihf
+</code></pre>
+<p>あるいは、追加のりんか引数を渡してホストシステム用にコンパイルすることもできます:</p>
+<pre><code class="language-bash"># Linux
+cargo rustc -- -C link-arg=-nostartfiles
+# Windows
+cargo rustc -- -C link-args=&quot;/ENTRY:_start /SUBSYSTEM:console&quot;
+# macOS
+cargo rustc -- -C link-args=&quot;-e __start -static -nostartfiles&quot;
+</code></pre>
+<p>これは独立した Rust バイナリの最小の例にすぎないことに注意してください。このバイナリは <code>_start</code> 関数が呼び出されたときにスタックが初期化されるなど、さまざまなことを前提としています。<strong>そのため、このようなバイナリを実際に使用するには、より多くの手順が必要となります</strong>。</p>
+<h2><a class="header" href="#次は" id="次は">次は？</a></h2>
+<p><a href="./02-minimal-rust-kernel.html">次の記事</a>では、この独立したバイナリを最小限の OS カーネルにするために必要なステップを説明しています。カスタムターゲットの作成、実行可能ファイルとブートローダの組み合わせ、画面に何か文字を表示する方法について説明しています。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="intro.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="intro.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
